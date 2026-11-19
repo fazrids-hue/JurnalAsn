@@ -1,0 +1,2852 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jurnal Harian Kinerja ASN & Tracker Kontrak — Dinas Pertanian Kabupaten Tapin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+      .print-only {
+        display: block !important;
+      }
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        font-size: 10.5pt;
+      }
+      @page {
+        size: A4 portrait;
+        margin: 1.4cm;
+      }
+    }
+
+    .print-only {
+      display: none;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .toast-anim {
+      animation: slideUp 0.25s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased selection:bg-teal-200 selection:text-teal-950">
+
+  <!-- Wadah Notifikasi Toast -->
+  <div id="toastContainer" class="no-print fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm"></div>
+
+  <!-- ================= TAMPILAN APLIKASI UTAMA ================= -->
+  <div class="no-print min-h-screen flex flex-col">
+
+    <!-- Header & Navigasi Utama -->
+    <header class="bg-gradient-to-r from-slate-900 via-teal-950 to-emerald-900 text-white shadow-lg sticky top-0 z-30">
+      <div class="max-w-7xl mx-auto px-4 py-3.5 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center text-xl border border-teal-300/25 shrink-0">
+            <i class="fa-solid fa-cow text-amber-300"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="text-[11px] font-bold uppercase tracking-wider bg-amber-400/20 text-amber-200 px-2 py-0.5 rounded border border-amber-300/30">
+                Pemkab Tapin
+              </span>
+              <span class="text-[11px] bg-slate-950/60 text-teal-200 px-2 py-0.5 rounded border border-teal-500/30">
+                <i class="fa-regular fa-clock mr-1"></i><span id="headerJamKerja">08:00 - 17:00 WITA</span>
+              </span>
+              <span class="text-[11px] bg-emerald-950/60 text-emerald-200 px-2 py-0.5 rounded border border-emerald-500/30">
+                Istirahat 12:00 - 13:00 WITA
+              </span>
+            </div>
+            <h1 class="text-base sm:text-lg font-extrabold leading-tight mt-0.5">Jurnal Harian Kinerja ASN &amp; Tracker Kontrak</h1>
+            <p class="text-[11px] text-teal-100/90">Dinas Pertanian Kabupaten Tapin • Bidang Peternakan &amp; Kesehatan Hewan</p>
+          </div>
+        </div>
+
+        <!-- Tombol Cetak, Ekspor & Backup -->
+        <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+          <button type="button" onclick="openPrintPreview()" class="bg-amber-400 hover:bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl text-xs shadow transition flex items-center gap-1.5 cursor-pointer">
+            <i class="fa-solid fa-print"></i> Cetak Laporan
+          </button>
+          <button type="button" onclick="downloadPDF()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-3 py-2 rounded-xl text-xs shadow transition flex items-center gap-1.5 cursor-pointer">
+            <i class="fa-solid fa-file-pdf"></i> PDF
+          </button>
+          <button type="button" onclick="downloadWord()" class="bg-sky-600 hover:bg-sky-700 text-white font-bold px-3 py-2 rounded-xl text-xs shadow transition flex items-center gap-1.5 cursor-pointer">
+            <i class="fa-solid fa-file-word"></i> Word (.doc)
+          </button>
+          <button type="button" onclick="exportCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-2 rounded-xl text-xs shadow transition flex items-center gap-1.5 cursor-pointer">
+            <i class="fa-solid fa-file-csv"></i> CSV
+          </button>
+          <button type="button" onclick="exportJSONBackup()" class="bg-white/10 hover:bg-white/20 text-white font-semibold px-2.5 py-2 rounded-xl text-xs border border-white/20 transition flex items-center gap-1.5 cursor-pointer" title="Unduh Backup JSON Lengkap">
+            <i class="fa-solid fa-database"></i> Backup JSON
+          </button>
+          <label class="bg-white/10 hover:bg-white/20 text-white font-semibold px-2.5 py-2 rounded-xl text-xs border border-white/20 transition flex items-center gap-1.5 cursor-pointer" title="Pulihkan dari Backup JSON">
+            <i class="fa-solid fa-upload"></i> Restore JSON
+            <input type="file" accept=".json,application/json" onchange="importJSONBackup(event)" class="hidden">
+          </label>
+          <button type="button" onclick="resetDemoData()" class="bg-rose-950/70 hover:bg-rose-900 text-rose-100 font-semibold px-2.5 py-2 rounded-xl text-xs border border-rose-400/30 transition flex items-center gap-1.5 cursor-pointer" title="Reset Data Awal">
+            <i class="fa-solid fa-rotate-left"></i> Reset Data Awal
+          </button>
+        </div>
+      </div>
+
+      <!-- 6 Tab Navigasi -->
+      <nav class="max-w-7xl mx-auto px-4 flex gap-1 border-t border-white/10 overflow-x-auto">
+        <button type="button" onclick="switchTab('jurnal')" id="tab-jurnal" class="tab-btn px-4 py-2.5 text-xs sm:text-sm font-bold border-b-2 border-amber-400 text-white flex items-center gap-2 whitespace-nowrap cursor-pointer">
+          <i class="fa-solid fa-book-open"></i> Input &amp; Daftar Jurnal
+        </button>
+        <button type="button" onclick="switchTab('kontrak')" id="tab-kontrak" class="tab-btn px-4 py-2.5 text-xs sm:text-sm font-medium border-b-2 border-transparent text-teal-100 hover:text-white flex items-center gap-2 whitespace-nowrap cursor-pointer">
+          <i class="fa-solid fa-file-contract"></i> Master Kontrak &amp; Tracker
+          <span id="badgeJumlahKontrak" class="text-[10px] bg-amber-400/25 text-amber-200 px-1.5 py-0.5 rounded-full font-bold">0</span>
+        </button>
+        <button type="button" onclick="switchTab('kalender')" id="tab-kalender" class="tab-btn px-4 py-2.5 text-xs sm:text-sm font-medium border-b-2 border-transparent text-teal-100 hover:text-white flex items-center gap-2 whitespace-nowrap cursor-pointer">
+          <i class="fa-solid fa-calendar-days"></i> Kalender Aktivitas
+        </button>
+        <button type="button" onclick="switchTab('template')" id="tab-template" class="tab-btn px-4 py-2.5 text-xs sm:text-sm font-medium border-b-2 border-transparent text-teal-100 hover:text-white flex items-center gap-2 whitespace-nowrap cursor-pointer">
+          <i class="fa-solid fa-layer-group"></i> Kelola Template
+          <span id="badgeJumlahTemplate" class="text-[10px] bg-white/20 text-white px-1.5 py-0.5 rounded-full font-bold">0</span>
+        </button>
+        <button type="button" onclick="switchTab('rekap')" id="tab-rekap" class="tab-btn px-4 py-2.5 text-xs sm:text-sm font-medium border-b-2 border-transparent text-teal-100 hover:text-white flex items-center gap-2 whitespace-nowrap cursor-pointer">
+          <i class="fa-solid fa-chart-pie"></i> Rekap &amp; Kepatuhan
+        </button>
+        <button type="button" onclick="switchTab('profil')" id="tab-profil" class="tab-btn px-4 py-2.5 text-xs sm:text-sm font-medium border-b-2 border-transparent text-teal-100 hover:text-white flex items-center gap-2 whitespace-nowrap cursor-pointer">
+          <i class="fa-solid fa-id-card"></i> Profil &amp; Jadwal
+        </button>
+      </nav>
+    </header>
+
+    <!-- Konten Utama -->
+    <main class="max-w-7xl w-full mx-auto px-4 py-5 flex-1 space-y-5">
+
+      <!-- Kartu Identitas ASN & Pejabat Penilai -->
+      <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div class="flex items-start sm:items-center gap-3.5">
+          <div class="w-12 h-12 rounded-full bg-teal-100 text-teal-950 font-extrabold flex items-center justify-center text-base shrink-0 border border-teal-200" id="avatarInisial">
+            RA
+          </div>
+          <div>
+            <h2 class="font-bold text-slate-900 text-sm sm:text-base" id="bannerNama">RAHMAT AL FAZRI, S.I.Pust</h2>
+            <p class="text-xs text-slate-600">NIP. <span id="bannerNip">199206122025211126</span> • <span class="font-bold text-teal-700" id="bannerJabatan">PENATA LAYANAN OPERASIONAL</span></p>
+            <p class="text-xs text-slate-500 mt-0.5" id="bannerUnit">Seksi Benih dan Pembibitan Ternak - Bidang PKH • <span id="bannerInstansi">Dinas Pertanian Kabupaten Tapin</span></p>
+          </div>
+        </div>
+        <div class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs">
+          <span class="text-slate-500 block">Pejabat Penilai Kinerja:</span>
+          <span class="font-bold text-slate-800" id="bannerAtasan">MUHAMMAD ERWIN</span>
+          <span class="text-slate-500 block" id="bannerAtasanNip">NIP. 198406252011011010 • Kepala Bidang Peternakan dan Kesehatan Hewan</span>
+        </div>
+      </section>
+
+      <!-- ================= TAB 1: INPUT & DAFTAR JURNAL ================= -->
+      <section id="view-jurnal" class="space-y-5">
+        <!-- 5 Kartu Ringkasan KPI & Fokus Tugas -->
+        <div class="grid grid-cols-2 lg:grid-cols-5 gap-3">
+          <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="text-xs text-slate-500 font-medium">Total Aktivitas Bulan Ini</div>
+            <div class="text-2xl font-extrabold text-slate-800 mt-1" id="statTotal">0</div>
+            <div class="text-[11px] text-teal-700 mt-0.5 font-semibold" id="statJamBulan">0 Jam Efektif</div>
+          </div>
+          <div class="bg-teal-50/70 p-3.5 rounded-2xl border border-teal-200 shadow-sm">
+            <div class="text-xs text-teal-950 font-bold">Target Harian (Min. 7)</div>
+            <div class="text-2xl font-extrabold text-teal-700 mt-1" id="statTargetHari">0 / 7</div>
+            <div class="text-[11px] text-slate-600 mt-0.5" id="statTargetStatus">Pilih tanggal di form</div>
+          </div>
+          <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="text-xs text-blue-700 font-bold">Operator</div>
+            <div class="text-2xl font-extrabold text-slate-800 mt-1" id="statOperator">0</div>
+            <div class="text-[11px] text-slate-500 mt-0.5">Sistem &amp; Administrasi</div>
+          </div>
+          <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="text-xs text-purple-700 font-bold">Statistik Ternak</div>
+            <div class="text-2xl font-extrabold text-slate-800 mt-1" id="statStatistik">0</div>
+            <div class="text-[11px] text-slate-500 mt-0.5">Populasi &amp; Pembibitan</div>
+          </div>
+          <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm col-span-2 lg:col-span-1">
+            <div class="text-xs text-amber-700 font-bold">Pencairan Kontrak &amp; Apel</div>
+            <div class="text-2xl font-extrabold text-slate-800 mt-1"><span id="statKontrak">0</span> <span class="text-sm font-bold text-slate-400">/</span> <span id="statApel" class="text-emerald-700">0</span></div>
+            <div class="text-[11px] text-slate-500 mt-0.5">Kontrak • Apel / Kedisiplinan</div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <!-- Kolom Kiri: Form Input Aktivitas (5 kolom) -->
+          <div id="formCardContainer" class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-sm p-5 h-fit">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+              <h3 id="formTitle" class="font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+                <i class="fa-solid fa-pen-to-square text-teal-700"></i> Catat Aktivitas Baru
+              </h3>
+              <button type="button" id="btnCancelEdit" onclick="resetJurnalForm()" class="hidden text-xs bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold px-2.5 py-1 rounded-lg border border-rose-200 cursor-pointer">
+                <i class="fa-solid fa-xmark mr-1"></i>Batal Edit
+              </button>
+            </div>
+
+            <!-- Ketentuan Wajib & Generator 4 Paket Aktivitas -->
+            <div class="bg-amber-50/90 border border-amber-200 rounded-xl p-3.5 mb-4 text-xs text-amber-950 space-y-2">
+              <div class="font-bold flex items-center gap-1.5">
+                <i class="fa-solid fa-triangle-exclamation text-amber-600"></i> Ketentuan Wajib &amp; Generator Harian:
+              </div>
+              <ul class="list-disc pl-4 space-y-0.5 text-[11px] text-amber-900">
+                <li>Minimal <strong>7 aktivitas wajib</strong> per hari kerja; istirahat <strong>12:00–13:00 WITA</strong> otomatis dipotong dari jam efektif.</li>
+                <li>Hari <strong>Senin s.d. Kamis</strong> wajib diawali <strong>Apel Pagi (08:00 - 08:15)</strong> dan diakhiri <strong>Apel Sore (16:45 - 17:00)</strong>.</li>
+              </ul>
+              <div class="pt-1 space-y-2">
+                <select id="presetPaketSelect" class="w-full border border-amber-300 bg-white rounded-xl px-2.5 py-1.5 text-xs font-semibold text-slate-800 outline-none">
+                  <option value="terpadu">Paket 1: Terpadu Harian (Operator + Statistik + Kontrak)</option>
+                  <option value="operator">Paket 2: Fokus Operator &amp; Sistem</option>
+                  <option value="statistik">Paket 3: Fokus Statistik Ternak</option>
+                  <option value="kontrak">Paket 4: Fokus Pencairan Kontrak</option>
+                </select>
+                <button type="button" onclick="generate7Aktivitas()" class="w-full bg-amber-400 hover:bg-amber-500 text-slate-950 font-bold py-2 px-3 rounded-xl shadow-sm transition flex items-center justify-center gap-1.5 cursor-pointer">
+                  <i class="fa-solid fa-wand-magic-sparkles"></i> Generate 7 Aktivitas Otomatis
+                </button>
+              </div>
+            </div>
+
+            <!-- Form Input Aktivitas -->
+            <form id="jurnalForm" onsubmit="handleSaveJurnal(event)" class="space-y-3">
+              <input type="hidden" id="editJurnalId" value="">
+
+              <div class="grid grid-cols-3 gap-2">
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Tanggal</label>
+                  <input type="date" id="inputTanggal" required onchange="onTanggalChange()" class="w-full border border-slate-300 rounded-xl px-2.5 py-2 text-xs focus:ring-2 focus:ring-teal-500 outline-none">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Mulai (WITA)</label>
+                  <input type="time" id="inputJamMulai" value="08:00" onchange="updateDurationIndicator()" required class="w-full border border-slate-300 rounded-xl px-2.5 py-2 text-xs focus:ring-2 focus:ring-teal-500 outline-none">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Selesai (WITA)</label>
+                  <input type="time" id="inputJamSelesai" value="09:30" onchange="updateDurationIndicator()" required class="w-full border border-slate-300 rounded-xl px-2.5 py-2 text-xs focus:ring-2 focus:ring-teal-500 outline-none">
+                </div>
+              </div>
+
+              <!-- Indikator Durasi Efektif & Preset Sesi -->
+              <div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5 space-y-1.5">
+                <div class="flex items-center justify-between text-[11px]">
+                  <span class="text-slate-500 font-semibold">Jam Kerja Efektif (non-istirahat):</span>
+                  <span id="durasiEfektifBadge" class="font-bold text-teal-800">1 Jam 30 Menit (1.50 Jam)</span>
+                </div>
+                <div class="grid grid-cols-3 gap-1.5">
+                  <button type="button" onclick="applySessionPreset('08:00', '17:00')" class="text-[10px] bg-white hover:bg-teal-50 text-slate-700 font-bold py-1 px-2 rounded-lg border border-slate-200 cursor-pointer">08:00 - 17:00</button>
+                  <button type="button" onclick="applySessionPreset('08:00', '12:00')" class="text-[10px] bg-white hover:bg-teal-50 text-slate-700 font-bold py-1 px-2 rounded-lg border border-slate-200 cursor-pointer">08:00 - 12:00</button>
+                  <button type="button" onclick="applySessionPreset('13:00', '17:00')" class="text-[10px] bg-white hover:bg-teal-50 text-slate-700 font-bold py-1 px-2 rounded-lg border border-slate-200 cursor-pointer">13:00 - 17:00</button>
+                </div>
+              </div>
+
+              <!-- Tombol Cepat Isi Apel Pagi / Sore -->
+              <div class="grid grid-cols-2 gap-2">
+                <button type="button" onclick="fillApel('pagi')" class="text-[11px] bg-teal-50 hover:bg-teal-100 text-teal-950 border border-teal-200 font-bold py-1.5 px-2 rounded-xl transition cursor-pointer">
+                  <i class="fa-solid fa-sun mr-1 text-amber-500"></i> Isi Apel Pagi (08:00 - 08:15)
+                </button>
+                <button type="button" onclick="fillApel('sore')" class="text-[11px] bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-300 font-bold py-1.5 px-2 rounded-xl transition cursor-pointer">
+                  <i class="fa-solid fa-moon mr-1 text-teal-700"></i> Isi Apel Sore (16:45 - 17:00)
+                </button>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Fokus Pekerjaan / Kategori</label>
+                <select id="inputKategori" onchange="onKategoriChange()" required class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-teal-500 outline-none bg-white">
+                  <option value="Operator">1. Operator</option>
+                  <option value="Statistik Ternak">2. Statistik Ternak</option>
+                  <option value="Pencairan Kontrak">3. Pencairan Kontrak</option>
+                  <option value="Apel / Kedisiplinan">4. Apel / Kedisiplinan</option>
+                </select>
+              </div>
+
+              <!-- Tautan Kontrak Terdaftar (Muncul saat Kategori == 'Pencairan Kontrak') -->
+              <div id="kontrakTrackerFields" class="hidden bg-amber-50/90 border border-amber-300 rounded-xl p-3 space-y-2.5">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-xs font-bold text-amber-950 flex items-center gap-1.5">
+                    <i class="fa-solid fa-file-invoice-dollar text-amber-600"></i> Tautan Kontrak Terdaftar
+                  </span>
+                  <button type="button" onclick="openQuickKontrakModal()" class="text-[11px] font-bold text-slate-950 bg-amber-400 hover:bg-amber-500 px-2.5 py-1 rounded-lg shadow-sm transition cursor-pointer">
+                    + Input Kontrak Baru
+                  </button>
+                </div>
+                <div>
+                  <label class="block text-[11px] font-semibold text-slate-700 mb-1">Pilih Kontrak dari Master Kontrak</label>
+                  <select id="inputKontrakId" onchange="onSelectKontrakDropdown()" class="w-full border border-amber-300 bg-white rounded-xl px-2.5 py-1.5 text-xs font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-amber-500">
+                    <option value="">-- Pilih Kontrak Pengadaan --</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-[11px] font-semibold text-slate-700 mb-1">Tahapan Pencairan (Sinkron ke Master Kontrak)</label>
+                  <select id="inputStatusKontrak" class="w-full border border-amber-300 bg-white rounded-xl px-2.5 py-1.5 text-xs font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-amber-500">
+                    <option value="Verifikasi Berkas / SPJ">Verifikasi Berkas / SPJ</option>
+                    <option value="Persetujuan PPK">Persetujuan PPK</option>
+                    <option value="Pengajuan SPP / SPM">Pengajuan SPP / SPM</option>
+                    <option value="Terbit SP2D / Selesai">Terbit SP2D / Selesai</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <label class="text-xs font-bold text-slate-700">Template Uraian Cepat</label>
+                  <button type="button" onclick="switchTab('template')" class="text-[11px] font-semibold text-teal-700 hover:underline cursor-pointer">
+                    Kelola Template
+                  </button>
+                </div>
+                <select id="inputTemplate" onchange="applyTemplate()" class="w-full border border-slate-200 bg-slate-50 rounded-xl px-3 py-2 text-xs text-slate-700 outline-none">
+                  <option value="">-- Pilih template kegiatan --</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Keterkaitan 5 Butir Kegiatan SKP 2026</label>
+                <select id="inputSkp" required class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-teal-500 outline-none bg-white">
+                  <option value="1. Menerima dan Memeriksa Penataan Layanan Operasional dan pengelolaan Layanan Teknis">1. Menerima dan Memeriksa Penataan Layanan Operasional dan pengelolaan Layanan Teknis</option>
+                  <option value="2. Mempelajari Pelaksanaan dan Pengelolaan Layanan Teknis">2. Mempelajari Pelaksanaan dan Pengelolaan Layanan Teknis</option>
+                  <option value="3. Menata pengelolaan Layanan Teknis">3. Menata pengelolaan Layanan Teknis</option>
+                  <option value="4. Melaksanakan Layanan Operasional" selected>4. Melaksanakan Layanan Operasional</option>
+                  <option value="5. Melaksanakan Tugas Lain yang diperintahkan Oleh Atasan">5. Melaksanakan Tugas Lain yang diperahkan Oleh Atasan</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Uraian Kegiatan Harian</label>
+                <textarea id="inputUraian" rows="3" required placeholder="Tuliskan rincian aktivitas yang dikerjakan..." class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-teal-500 outline-none"></textarea>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Volume Output</label>
+                  <input type="number" id="inputVolume" value="1" min="1" required class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Satuan Output</label>
+                  <input type="text" id="inputSatuan" value="Dokumen" required placeholder="Dokumen / Berkas / Kegiatan" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+                </div>
+              </div>
+
+              <!-- Bukti Dukung & Lampiran -->
+              <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
+                <label class="block text-xs font-bold text-slate-700">Bukti Dukung &amp; Lampiran</label>
+                <input type="text" id="inputBukti" placeholder="Contoh: Screenshot iSIKHNAS / Berkas SPJ / Daftar Hadir" class="w-full border border-slate-300 bg-white rounded-xl px-3 py-1.5 text-xs focus:ring-2 focus:ring-teal-500 outline-none">
+                <div class="flex items-center gap-2">
+                  <label class="flex-1 cursor-pointer bg-white hover:bg-teal-50 border border-dashed border-teal-400 rounded-xl px-3 py-2 text-xs text-teal-900 font-semibold flex items-center justify-center gap-2 transition">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span id="filePickerLabel">Pilih File Foto / PDF Bukti</span>
+                    <input type="file" id="inputFileBukti" accept="image/*,.pdf" onchange="handleFileSelect(event)" class="hidden">
+                  </label>
+                  <button type="button" id="btnClearFile" onclick="clearSelectedFile()" class="hidden text-xs text-rose-600 hover:text-rose-800 px-2 py-1 font-bold cursor-pointer" title="Hapus lampiran">
+                    <i class="fa-solid fa-xmark"></i>
+                  </button>
+                </div>
+                <div id="filePreviewBox" class="hidden text-[11px] bg-teal-100/70 text-teal-950 px-2.5 py-1.5 rounded-xl flex items-center justify-between"></div>
+              </div>
+
+              <button type="submit" id="btnSubmitJurnal" class="w-full bg-teal-700 hover:bg-teal-800 text-white font-bold py-2.5 px-4 rounded-xl shadow transition flex items-center justify-center gap-2 cursor-pointer">
+                <i class="fa-solid fa-floppy-disk"></i> Simpan Aktivitas Jurnal
+              </button>
+            </form>
+          </div>
+
+          <!-- Kolom Kanan: Ringkasan Tracker Kontrak + Filter + Daftar Jurnal (7 kolom) -->
+          <div class="lg:col-span-7 space-y-4">
+
+            <!-- Ringkasan Tracker Progres Kontrak Pengadaan -->
+            <div class="bg-white rounded-2xl border border-amber-200 shadow-sm p-4 space-y-3">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h4 class="text-xs font-extrabold uppercase tracking-wider text-amber-950 flex items-center gap-1.5">
+                    <i class="fa-solid fa-list-check text-amber-600"></i> Tracker Progres Kontrak Pengadaan
+                  </h4>
+                  <p class="text-[11px] text-slate-500 mt-0.5" id="kontrakTotalBadge">0 Kontrak Terdaftar • Total Rp 0</p>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="openQuickKontrakModal()" class="text-xs bg-amber-400 hover:bg-amber-500 text-slate-950 font-bold px-3 py-1.5 rounded-xl shadow-sm transition flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-plus"></i> Input Kontrak
+                  </button>
+                  <button type="button" onclick="switchTab('kontrak')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3 py-1.5 rounded-xl transition cursor-pointer">
+                    Semua Kontrak
+                  </button>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-2">
+                  <div class="text-lg font-extrabold text-slate-700" id="trkVerifikasi">0</div>
+                  <div class="text-[10px] font-bold text-slate-500">1. Verifikasi Berkas / SPJ</div>
+                </div>
+                <div class="bg-blue-50/70 border border-blue-200 rounded-xl p-2">
+                  <div class="text-lg font-extrabold text-blue-700" id="trkPpk">0</div>
+                  <div class="text-[10px] font-bold text-blue-700">2. Persetujuan PPK</div>
+                </div>
+                <div class="bg-amber-50/70 border border-amber-200 rounded-xl p-2">
+                  <div class="text-lg font-extrabold text-amber-700" id="trkSpp">0</div>
+                  <div class="text-[10px] font-bold text-amber-700">3. Pengajuan SPP / SPM</div>
+                </div>
+                <div class="bg-emerald-50/70 border border-emerald-200 rounded-xl p-2">
+                  <div class="text-lg font-extrabold text-emerald-700" id="trkSp2d">0</div>
+                  <div class="text-[10px] font-bold text-emerald-700">4. Terbit SP2D / Selesai</div>
+                </div>
+              </div>
+
+              <div id="miniKontrakList" class="space-y-2"></div>
+            </div>
+
+            <!-- Bar Filter & Pencarian -->
+            <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm space-y-2.5">
+              <div class="flex flex-wrap gap-2 items-center justify-between">
+                <div class="flex flex-wrap gap-2 items-center">
+                  <input type="month" id="filterBulan" onchange="onFilterBulanChange()" class="border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700 outline-none">
+                  <select id="filterKategori" onchange="renderJurnalList()" class="border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700 outline-none bg-white">
+                    <option value="ALL">Semua Kategori</option>
+                    <option value="Operator">Operator</option>
+                    <option value="Statistik Ternak">Statistik Ternak</option>
+                    <option value="Pencairan Kontrak">Pencairan Kontrak</option>
+                    <option value="Apel / Kedisiplinan">Apel / Kedisiplinan</option>
+                  </select>
+                </div>
+                <span class="text-[11px] font-semibold text-slate-500" id="jumlahHasilFilter">0 aktivitas</span>
+              </div>
+              <div class="relative">
+                <i class="fa-solid fa-magnifying-glass text-slate-400 text-xs absolute left-3 top-2.5"></i>
+                <input type="text" id="filterKeyword" onkeyup="renderJurnalList()" placeholder="Cari kata kunci uraian, nomor kontrak, penyedia, atau bukti dukung..." class="w-full border border-slate-200 bg-slate-50 rounded-xl pl-8 pr-3 py-1.5 text-xs outline-none focus:bg-white focus:border-teal-400">
+              </div>
+            </div>
+
+            <!-- Daftar Jurnal Harian Dikelompokkan per Tanggal -->
+            <div id="jurnalListContainer" class="space-y-4"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= TAB 2: MASTER KONTRAK & TRACKER ================= -->
+      <section id="view-kontrak" class="hidden space-y-5">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <!-- Form Input / Edit Kontrak Pengadaan (5 kolom) -->
+          <div id="kontrakFormCard" class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-sm p-5 h-fit">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+              <h3 id="kontrakFormTitle" class="font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+                <i class="fa-solid fa-file-signature text-amber-600"></i> Input Kontrak Pengadaan Baru
+              </h3>
+              <button type="button" id="btnBatalEditKontrak" onclick="resetKontrakForm()" class="hidden text-xs bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold px-2.5 py-1 rounded-lg border border-rose-200 cursor-pointer">
+                <i class="fa-solid fa-xmark mr-1"></i>Batal
+              </button>
+            </div>
+
+            <form onsubmit="handleSaveKontrak(event)" class="space-y-3">
+              <input type="hidden" id="editKontrakId" value="">
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Nomor Kontrak / SPK</label>
+                <input type="text" id="kNomor" required placeholder="Contoh: 027/145/SPK-PKH/DISTAN/2026" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs font-semibold focus:ring-2 focus:ring-amber-500 outline-none">
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Nama Paket Pengadaan</label>
+                <input type="text" id="kNamaPaket" required placeholder="Contoh: Pengadaan Bibit Ternak Sapi Bali Unggul" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Nama Penyedia / Rekanan</label>
+                <input type="text" id="kPenyedia" required placeholder="Contoh: CV. Tapin Agro Mandiri" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Nilai Kontrak (Rp)</label>
+                <div class="relative">
+                  <span class="text-xs font-bold text-slate-500 absolute left-3 top-2.5">Rp</span>
+                  <input type="text" id="kNilai" required onkeyup="formatRupiahInput(this)" placeholder="150.000.000" class="w-full border border-slate-300 rounded-xl pl-9 pr-3 py-2 text-sm font-extrabold text-slate-800 focus:ring-2 focus:ring-amber-500 outline-none">
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Tanggal Kontrak</label>
+                  <input type="date" id="kTglKontrak" required class="w-full border border-slate-300 rounded-xl px-2.5 py-2 text-xs focus:ring-2 focus:ring-amber-500 outline-none">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Batas Akhir / BAST</label>
+                  <input type="date" id="kTglBast" required class="w-full border border-slate-300 rounded-xl px-2.5 py-2 text-xs focus:ring-2 focus:ring-amber-500 outline-none">
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Tahapan Pencairan Saat Ini</label>
+                <select id="kStatus" required class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold bg-white focus:ring-2 focus:ring-amber-500 outline-none">
+                  <option value="Verifikasi Berkas / SPJ">Verifikasi Berkas / SPJ</option>
+                  <option value="Persetujuan PPK">Persetujuan PPK</option>
+                  <option value="Pengajuan SPP / SPM">Pengajuan SPP / SPM</option>
+                  <option value="Terbit SP2D / Selesai">Terbit SP2D / Selesai</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Keterangan / Catatan Progres</label>
+                <textarea id="kKeterangan" rows="2" placeholder="Catatan dokumen SPJ, BAST, atau faktur..." class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-amber-500 outline-none"></textarea>
+              </div>
+
+              <button type="submit" id="btnSubmitKontrak" class="w-full bg-amber-400 hover:bg-amber-500 text-slate-950 font-bold py-2.5 px-4 rounded-xl shadow transition flex items-center justify-center gap-2 cursor-pointer">
+                <i class="fa-solid fa-floppy-disk"></i> Simpan Data Kontrak
+              </button>
+            </form>
+          </div>
+
+          <!-- Tabel & Kartu Tracker Progres Kontrak (7 kolom) -->
+          <div class="lg:col-span-7 space-y-4">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 class="font-bold text-slate-800 text-sm">Tracker Progres Kontrak Seksi Benih &amp; Pembibitan Ternak</h3>
+                <p class="text-xs font-semibold text-teal-700 mt-0.5" id="masterKontrakSummaryText">Total Anggaran: Rp 0 (0 Kontrak)</p>
+              </div>
+              <select id="filterStatusKontrakMaster" onchange="renderMasterKontrakList()" class="border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700 bg-white outline-none">
+                <option value="ALL">Semua Tahapan</option>
+                <option value="Verifikasi Berkas / SPJ">1. Verifikasi Berkas / SPJ</option>
+                <option value="Persetujuan PPK">2. Persetujuan PPK</option>
+                <option value="Pengajuan SPP / SPM">3. Pengajuan SPP / SPM</option>
+                <option value="Terbit SP2D / Selesai">4. Terbit SP2D / Selesai</option>
+              </select>
+            </div>
+
+            <!-- Tabel Ringkas Kontrak -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold">
+                  <tr>
+                    <th class="px-3 py-2.5">No. Kontrak &amp; Paket</th>
+                    <th class="px-3 py-2.5">Penyedia</th>
+                    <th class="px-3 py-2.5 text-right">Nilai (Rp)</th>
+                    <th class="px-3 py-2.5 text-center">Progres</th>
+                  </tr>
+                </thead>
+                <tbody id="masterKontrakTableBody" class="divide-y divide-slate-100"></tbody>
+              </table>
+            </div>
+
+            <!-- Kartu Detail & Aksi Kontrak -->
+            <div id="masterKontrakListContainer" class="space-y-3"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= TAB 3: KALENDER AKTIVITAS ================= -->
+      <section id="view-kalender" class="hidden space-y-5">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <!-- Grid Kalender Bulanan (7 kolom) -->
+          <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+              <div>
+                <h3 class="font-bold text-slate-800 text-base sm:text-lg">Kalender Aktivitas Harian</h3>
+                <div class="flex flex-wrap items-center gap-2 text-[11px] mt-1">
+                  <span class="inline-flex items-center gap-1 text-emerald-800 font-semibold"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>≥ 7 Aktivitas</span>
+                  <span class="inline-flex items-center gap-1 text-amber-800 font-semibold"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>1–6 Aktivitas</span>
+                  <span class="inline-flex items-center gap-1 text-rose-800 font-semibold"><span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span>Kerja Kosong</span>
+                  <span class="inline-flex items-center gap-1 text-slate-500 font-semibold"><span class="w-2.5 h-2.5 rounded-full bg-slate-300"></span>Akhir Pekan</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="changeCalMonth(-1)" class="px-3 py-1.5 border border-slate-300 rounded-xl hover:bg-slate-50 text-xs cursor-pointer" title="Bulan Sebelumnya"><i class="fa-solid fa-chevron-left"></i></button>
+                <span id="calMonthLabel" class="font-bold text-sm px-2 text-slate-800 min-w-28 text-center">November 2026</span>
+                <button type="button" onclick="changeCalMonth(1)" class="px-3 py-1.5 border border-slate-300 rounded-xl hover:bg-slate-50 text-xs cursor-pointer" title="Bulan Berikutnya"><i class="fa-solid fa-chevron-right"></i></button>
+              </div>
+            </div>
+            <div class="grid grid-cols-7 gap-1.5 text-center text-xs font-bold text-slate-500 mb-2">
+              <div>Min</div><div>Sen</div><div>Sel</div><div>Rab</div><div>Kam</div><div>Jum</div><div>Sab</div>
+            </div>
+            <div id="calendarGrid" class="grid grid-cols-7 gap-1.5"></div>
+          </div>
+
+          <!-- Panel Rincian Tanggal Terpilih (5 kolom) -->
+          <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-sm p-5 h-fit space-y-4">
+            <div class="flex items-start justify-between gap-2 border-b border-slate-100 pb-3">
+              <div>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-teal-700">Detail Tanggal Terpilih</span>
+                <h4 id="calDetailDateTitle" class="font-extrabold text-slate-900 text-base mt-0.5">-</h4>
+                <p id="calDetailStatusSub" class="text-xs text-slate-500 mt-0.5">Klik tanggal pada kalender untuk melihat aktivitas</p>
+              </div>
+              <span id="calDetailBadge" class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">0/7</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <button type="button" onclick="generate7ForSelectedCalDate()" class="bg-amber-400 hover:bg-amber-500 text-slate-950 font-bold py-2 px-3 rounded-xl text-xs shadow-sm transition flex items-center justify-center gap-1.5 cursor-pointer">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Generate 7 di Tanggal Ini
+              </button>
+              <button type="button" onclick="addNewOnSelectedCalDate()" class="bg-teal-700 hover:bg-teal-800 text-white font-bold py-2 px-3 rounded-xl text-xs shadow-sm transition flex items-center justify-center gap-1.5 cursor-pointer">
+                <i class="fa-solid fa-plus"></i> Tambah Aktivitas
+              </button>
+            </div>
+
+            <div id="calDetailList" class="space-y-2.5 max-h-96 overflow-y-auto pr-1"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= TAB 4: KELOLA TEMPLATE AKTIVITAS ================= -->
+      <section id="view-template" class="hidden space-y-5">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <!-- Form Tambah / Edit Template (5 kolom) -->
+          <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-sm p-5 h-fit">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+              <h3 id="tplFormTitle" class="font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+                <i class="fa-solid fa-layer-group text-teal-700"></i> Tambah Template Aktivitas
+              </h3>
+              <button type="button" id="btnCancelEditTpl" onclick="resetTemplateForm()" class="hidden text-xs bg-rose-50 text-rose-700 font-bold px-2.5 py-1 rounded-lg border border-rose-200 cursor-pointer">
+                Batal
+              </button>
+            </div>
+
+            <form onsubmit="handleSaveTemplate(event)" class="space-y-3">
+              <input type="hidden" id="editTplId" value="">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Kategori Tugas</label>
+                <select id="tplKategori" required class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm bg-white outline-none">
+                  <option value="Operator">Operator</option>
+                  <option value="Statistik Ternak">Statistik Ternak</option>
+                  <option value="Pencairan Kontrak">Pencairan Kontrak</option>
+                  <option value="Apel / Kedisiplinan">Apel / Kedisiplinan</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Uraian Template Kegiatan</label>
+                <textarea id="tplUraian" rows="3" required placeholder="Tuliskan kalimat template kegiatan..." class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm outline-none"></textarea>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Keterkaitan SKP 2026</label>
+                <select id="tplSkp" required class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs bg-white outline-none">
+                  <option value="1. Menerima dan Memeriksa Penataan Layanan Operasional dan pengelolaan Layanan Teknis">1. Menerima dan Memeriksa Penataan Layanan Operasional dan pengelolaan Layanan Teknis</option>
+                  <option value="2. Mempelajari Pelaksanaan dan Pengelolaan Layanan Teknis">2. Mempelajari Pelaksanaan dan Pengelolaan Layanan Teknis</option>
+                  <option value="3. Menata pengelolaan Layanan Teknis">3. Menata pengelolaan Layanan Teknis</option>
+                  <option value="4. Melaksanakan Layanan Operasional" selected>4. Melaksanakan Layanan Operasional</option>
+                  <option value="5. Melaksanakan Tugas Lain yang diperintahkan Oleh Atasan">5. Melaksanakan Tugas Lain yang diperintahkan Oleh Atasan</option>
+                </select>
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Volume Default</label>
+                  <input type="number" id="tplVolume" value="1" min="1" required class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs outline-none">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Satuan Default</label>
+                  <input type="text" id="tplSatuan" value="Dokumen" required class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs outline-none">
+                </div>
+              </div>
+              <button type="submit" id="btnSubmitTpl" class="w-full bg-teal-700 hover:bg-teal-800 text-white font-bold py-2.5 px-4 rounded-xl shadow transition cursor-pointer">
+                Simpan Template
+              </button>
+            </form>
+          </div>
+
+          <!-- Daftar Template Tersimpan (7 kolom) -->
+          <div class="lg:col-span-7 space-y-3">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-2">
+              <h3 class="font-bold text-sm text-slate-800">Daftar Template Aktivitas</h3>
+              <div class="flex items-center gap-2">
+                <select id="filterTplKategori" onchange="renderTemplateManager()" class="border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold bg-white outline-none">
+                  <option value="ALL">Semua Kategori</option>
+                  <option value="Operator">Operator</option>
+                  <option value="Statistik Ternak">Statistik Ternak</option>
+                  <option value="Pencairan Kontrak">Pencairan Kontrak</option>
+                  <option value="Apel / Kedisiplinan">Apel / Kedisiplinan</option>
+                </select>
+                <button type="button" onclick="resetDefaultTemplates()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-xl border border-slate-200 cursor-pointer">
+                  <i class="fa-solid fa-rotate-left mr-1"></i>Reset Bawaan
+                </button>
+              </div>
+            </div>
+            <div id="templateManagerList" class="space-y-2.5"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= TAB 5: REKAP & KEPATUHAN ================= -->
+      <section id="view-rekap" class="hidden space-y-5">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-5">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+            <div>
+              <h3 class="font-bold text-slate-800 text-base sm:text-lg">Rekapitulasi Kinerja, Jam Efektif &amp; Kepatuhan Bulanan</h3>
+              <p class="text-xs text-slate-500">Evaluasi target minimal 7 aktivitas/hari, jam efektif (memotong istirahat 12:00–13:00 WITA), Apel Pagi/Sore (Senin–Kamis), dan 5 Butir SKP 2026.</p>
+            </div>
+            <input type="month" id="rekapBulanInput" onchange="renderRekapBulanan()" class="border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 outline-none">
+          </div>
+
+          <!-- 4 Metrik Kepatuhan Bulanan -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4">
+              <div class="text-xs font-bold text-slate-600">Hari Kerja Terisi</div>
+              <div class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1" id="rekapHariKerjaTerisi">0 Hari</div>
+              <div class="text-xs text-slate-500 mt-1" id="rekapTotalItem">Total 0 aktivitas tercatat</div>
+            </div>
+            <div class="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-4">
+              <div class="text-xs font-bold text-emerald-900">Target ≥ 7 Aktivitas/Hari</div>
+              <div class="text-2xl sm:text-3xl font-extrabold text-emerald-700 mt-1" id="rekapPersenTarget7">0%</div>
+              <div class="text-xs text-slate-600 mt-1" id="rekapHariLengkap">0 dari 0 hari kerja lengkap</div>
+            </div>
+            <div class="bg-teal-50/70 border border-teal-200 rounded-2xl p-4">
+              <div class="text-xs font-bold text-teal-900">Apel Pagi &amp; Sore (Sen–Kam)</div>
+              <div class="text-2xl sm:text-3xl font-extrabold text-teal-700 mt-1" id="rekapPersenApel">0%</div>
+              <div class="text-xs text-slate-600 mt-1" id="rekapDetailApel">0 dari 0 sesi apel wajib</div>
+            </div>
+            <div class="bg-amber-50/70 border border-amber-200 rounded-2xl p-4">
+              <div class="text-xs font-bold text-amber-900">Jam Kerja Efektif (WITA)</div>
+              <div class="text-2xl sm:text-3xl font-extrabold text-amber-700 mt-1" id="rekapTotalJamKerja">0 Jam</div>
+              <div class="text-xs text-slate-600 mt-1" id="rekapTotalVolume">Akumulasi 0 output</div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 pt-2">
+            <!-- Distribusi Fokus Tugas & Jam Efektif -->
+            <div class="border border-slate-200 rounded-2xl p-4 space-y-3">
+              <h4 class="font-bold text-sm text-slate-800">Distribusi Fokus Tugas &amp; Jam Kerja Efektif</h4>
+              <div id="rekapKategoriBars" class="space-y-3"></div>
+            </div>
+
+            <!-- Rekapitulasi per 5 Butir Kegiatan SKP 2026 -->
+            <div class="border border-slate-200 rounded-2xl p-4 space-y-3">
+              <h4 class="font-bold text-sm text-slate-800">Rekapitulasi per 5 Butir Kegiatan SKP 2026</h4>
+              <div id="rekapSkpBars" class="space-y-3"></div>
+            </div>
+          </div>
+
+          <!-- Blok Tanda Tangan Resmi Pegawai & Pejabat Penilai di Rantau -->
+          <div class="border-t border-slate-200 pt-5">
+            <div class="bg-slate-50/90 border border-slate-200 rounded-2xl p-5 grid grid-cols-1 md:grid-cols-2 gap-6 text-xs text-slate-800 text-center">
+              <div class="space-y-1">
+                <p class="font-semibold text-slate-600">Mengetahui,</p>
+                <p class="font-bold text-slate-900" id="rekapTtdAtasanJabatan">Kepala Bidang Peternakan dan Kesehatan Hewan</p>
+                <div class="h-16"></div>
+                <p class="font-extrabold underline text-slate-950 text-sm" id="rekapTtdAtasanNama">MUHAMMAD ERWIN</p>
+                <p class="text-slate-600 font-medium" id="rekapTtdAtasanNip">NIP. 198406252011011010</p>
+              </div>
+              <div class="space-y-1">
+                <p class="font-semibold text-slate-600"><span id="rekapTtdTempat">Rantau</span>, <span id="rekapTtdTanggal">-</span></p>
+                <p class="font-bold text-slate-900">Pegawai yang Melaporkan,</p>
+                <div class="h-16"></div>
+                <p class="font-extrabold underline text-slate-950 text-sm" id="rekapTtdNama">RAHMAT AL FAZRI, S.I.Pust</p>
+                <p class="text-slate-600 font-medium" id="rekapTtdNip">NIP. 199206122025211126</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= TAB 6: PROFIL & JADWAL ================= -->
+      <section id="view-profil" class="hidden space-y-5">
+        <div class="max-w-3xl mx-auto bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <h3 class="font-bold text-slate-800 text-base sm:text-lg border-b border-slate-100 pb-3 mb-4">Pengaturan Identitas ASN, Pejabat Penilai &amp; Jadwal Kerja</h3>
+          <form onsubmit="handleSaveProfil(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Nama Lengkap &amp; Gelar</label>
+              <input type="text" id="profNama" required class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">NIP Pegawai</label>
+              <input type="text" id="profNip" required class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Jabatan</label>
+              <input type="text" id="profJabatan" required class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Unit / Seksi / Bidang</label>
+              <input type="text" id="profUnit" required class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm">
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-xs font-bold text-slate-600 mb-1">Instansi</label>
+              <input type="text" id="profInstansi" required class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Nama Pejabat Penilai</label>
+              <input type="text" id="profAtasanNama" required class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">NIP Pejabat Penilai</label>
+              <input type="text" id="profAtasanNip" required class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Jabatan Pejabat Penilai</label>
+              <input type="text" id="profAtasanJabatan" required class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Tempat Cetak / TTD</label>
+              <input type="text" id="profTempat" required class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Jam Kerja Standar Mulai (WITA)</label>
+              <input type="time" id="profJamMasuk" required class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Jam Kerja Standar Selesai (WITA)</label>
+              <input type="time" id="profJamPulang" required class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm">
+            </div>
+            <div class="md:col-span-2 pt-2">
+              <button type="submit" class="bg-teal-700 hover:bg-teal-800 text-white font-bold px-6 py-2.5 rounded-xl shadow cursor-pointer">
+                Simpan Profil &amp; Jadwal Kerja
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Panel Aksi Cepat Backup, Restore, Ekspor & Reset Data Awal di Tab Profil -->
+        <div class="max-w-3xl mx-auto bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-3">
+          <div class="border-b border-slate-100 pb-2.5">
+            <h4 class="font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+              <i class="fa-solid fa-hard-drive text-teal-700"></i> Kelola Data Lokal, Backup / Restore &amp; Ekspor Dokumen
+            </h4>
+            <p class="text-xs text-slate-500 mt-0.5">Seluruh data jurnal, kontrak, template, dan profil tersimpan otomatis di <code class="bg-slate-100 px-1.5 py-0.5 rounded">localStorage</code> browser untuk penggunaan langsung di GitHub Pages.</p>
+          </div>
+          <div class="flex flex-wrap gap-2 pt-1">
+            <button type="button" onclick="exportJSONBackup()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-3.5 py-2 rounded-xl text-xs shadow transition flex items-center gap-1.5 cursor-pointer">
+              <i class="fa-solid fa-database"></i> Backup JSON
+            </button>
+            <label class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold px-3.5 py-2 rounded-xl text-xs border border-slate-300 transition flex items-center gap-1.5 cursor-pointer">
+              <i class="fa-solid fa-upload"></i> Restore JSON
+              <input type="file" accept=".json,application/json" onchange="importJSONBackup(event)" class="hidden">
+            </label>
+            <button type="button" onclick="exportCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 py-2 rounded-xl text-xs shadow transition flex items-center gap-1.5 cursor-pointer">
+              <i class="fa-solid fa-file-csv"></i> Ekspor CSV
+            </button>
+            <button type="button" onclick="downloadWord()" class="bg-sky-600 hover:bg-sky-700 text-white font-bold px-3.5 py-2 rounded-xl text-xs shadow transition flex items-center gap-1.5 cursor-pointer">
+              <i class="fa-solid fa-file-word"></i> Download Word (.doc)
+            </button>
+            <button type="button" onclick="downloadPDF()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-3.5 py-2 rounded-xl text-xs shadow transition flex items-center gap-1.5 cursor-pointer">
+              <i class="fa-solid fa-file-pdf"></i> Download PDF
+            </button>
+            <button type="button" onclick="openPrintPreview()" class="bg-amber-400 hover:bg-amber-500 text-slate-950 font-bold px-3.5 py-2 rounded-xl text-xs shadow transition flex items-center gap-1.5 cursor-pointer">
+              <i class="fa-solid fa-print"></i> Cetak Laporan
+            </button>
+            <button type="button" onclick="resetDemoData()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold px-3.5 py-2 rounded-xl text-xs border border-rose-200 transition flex items-center gap-1.5 cursor-pointer">
+              <i class="fa-solid fa-rotate-left"></i> Reset Data Awal
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ================= MODAL INPUT KONTRAK CEPAT ================= -->
+  <div id="modalQuickKontrak" class="no-print hidden fixed inset-0 bg-slate-950/60 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl border border-slate-200 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h4 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+          <i class="fa-solid fa-file-signature text-amber-600"></i> Input Kontrak Pengadaan Baru
+        </h4>
+        <button type="button" onclick="closeQuickKontrakModal()" class="text-slate-400 hover:text-slate-700 cursor-pointer">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <form onsubmit="handleQuickSaveKontrak(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Nomor Kontrak / SPK</label>
+          <input type="text" id="qkNomor" required placeholder="027/145/SPK-PKH/DISTAN/2026" class="w-full border border-slate-300 rounded-xl px-3 py-2 font-semibold outline-none">
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Nama Paket Pengadaan</label>
+          <input type="text" id="qkNamaPaket" required placeholder="Pengadaan Bibit Ternak Sapi Bali Unggul" class="w-full border border-slate-300 rounded-xl px-3 py-2 outline-none">
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Nama Penyedia / Rekanan</label>
+          <input type="text" id="qkPenyedia" required placeholder="CV. Tapin Agro Mandiri" class="w-full border border-slate-300 rounded-xl px-3 py-2 outline-none">
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Nilai Kontrak (Rp)</label>
+          <input type="text" id="qkNilai" required onkeyup="formatRupiahInput(this)" placeholder="150.000.000" class="w-full border border-slate-300 rounded-xl px-3 py-2 font-bold outline-none">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Tanggal Kontrak</label>
+            <input type="date" id="qkTglKontrak" required class="w-full border border-slate-300 rounded-xl px-2.5 py-2 outline-none">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Batas Akhir / BAST</label>
+            <input type="date" id="qkTglBast" required class="w-full border border-slate-300 rounded-xl px-2.5 py-2 outline-none">
+          </div>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Tahapan Pencairan Saat Ini</label>
+          <select id="qkStatus" class="w-full border border-slate-300 rounded-xl px-3 py-2 font-bold bg-white outline-none">
+            <option value="Verifikasi Berkas / SPJ">Verifikasi Berkas / SPJ</option>
+            <option value="Persetujuan PPK">Persetujuan PPK</option>
+            <option value="Pengajuan SPP / SPM">Pengajuan SPP / SPM</option>
+            <option value="Terbit SP2D / Selesai">Terbit SP2D / Selesai</option>
+          </select>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeQuickKontrakModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 font-semibold cursor-pointer">Batal</button>
+          <button type="submit" class="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-500 text-slate-950 font-bold shadow cursor-pointer">Simpan &amp; Tautkan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MODAL SALIN AKTIVITAS HARIAN ================= -->
+  <div id="modalCopyDay" class="no-print hidden fixed inset-0 bg-slate-950/60 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl border border-slate-200 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h4 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+          <i class="fa-solid fa-copy text-blue-600"></i> Salin Aktivitas Harian ke Tanggal Lain
+        </h4>
+        <button type="button" onclick="closeCopyDayModal()" class="text-slate-400 hover:text-slate-700 cursor-pointer">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <form onsubmit="executeCopyDay(event)" class="space-y-3 text-xs">
+        <input type="hidden" id="copySourceDate" value="">
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3">
+          <span class="text-slate-500 block">Tanggal Sumber:</span>
+          <span class="font-bold text-slate-900 text-sm" id="copySourceLabel">-</span>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Tanggal Tujuan Penyalinan</label>
+          <input type="date" id="copyTargetDate" required class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm outline-none">
+        </div>
+        <label class="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl p-2.5 cursor-pointer">
+          <input type="checkbox" id="copyAdjustApel" checked class="mt-0.5 rounded text-teal-600">
+          <span class="text-[11px] text-amber-950">Sesuaikan otomatis Apel Pagi/Sore bila menyalin antara Senin–Kamis dan Jumat.</span>
+        </label>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeCopyDayModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 font-semibold cursor-pointer">Batal</button>
+          <button type="submit" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow cursor-pointer">Salin Aktivitas</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= TAMPILAN CETAK & EKSPOR RESMI A4 ================= -->
+  <div class="print-only" id="officialReportArea">
+    <div class="text-center border-b-4 border-double border-black pb-3 mb-4">
+      <h2 class="text-sm font-bold uppercase tracking-wide">PEMERINTAH KABUPATEN TAPIN</h2>
+      <h1 class="text-lg font-extrabold uppercase" id="printInstansi">DINAS PERTANIAN KABUPATEN TAPIN</h1>
+      <p class="text-xs" id="printUnit">Seksi Benih dan Pembibitan Ternak - Bidang PKH</p>
+      <p class="text-[11px]">Alamat: Kawasan Perkantoran Rantau Baru, Kabupaten Tapin, Kalimantan Selatan</p>
+    </div>
+
+    <div class="text-center mb-4">
+      <h3 class="font-bold text-sm uppercase underline">LAPORAN JURNAL HARIAN KINERJA ASN</h3>
+      <p class="text-xs" id="printPeriode">Periode Bulan: November 2026</p>
+    </div>
+
+    <table class="w-full text-xs mb-4">
+      <tr>
+        <td class="w-36 py-0.5 font-semibold">Nama Pegawai</td><td class="w-4">:</td><td id="printNama"></td>
+        <td class="w-36 py-0.5 font-semibold">Pejabat Penilai</td><td class="w-4">:</td><td id="printAtasanNama"></td>
+      </tr>
+      <tr>
+        <td class="py-0.5 font-semibold">NIP</td><td>:</td><td id="printNip"></td>
+        <td class="py-0.5 font-semibold">NIP Penilai</td><td>:</td><td id="printAtasanNip"></td>
+      </tr>
+      <tr>
+        <td class="py-0.5 font-semibold">Jabatan</td><td>:</td><td id="printJabatan"></td>
+        <td class="py-0.5 font-semibold">Jabatan Penilai</td><td>:</td><td id="printAtasanJabatan"></td>
+      </tr>
+    </table>
+
+    <table class="w-full border-collapse border border-black text-[10px]">
+      <thead>
+        <tr class="bg-slate-200">
+          <th class="border border-black px-1.5 py-1 w-8">No</th>
+          <th class="border border-black px-1.5 py-1 w-20">Tanggal</th>
+          <th class="border border-black px-1.5 py-1 w-24">Waktu (WITA)</th>
+          <th class="border border-black px-1.5 py-1 w-24">Fokus Tugas</th>
+          <th class="border border-black px-1.5 py-1">Uraian Kegiatan &amp; Keterkaitan SKP</th>
+          <th class="border border-black px-1.5 py-1 w-20">Output</th>
+        </tr>
+      </thead>
+      <tbody id="printTableBody"></tbody>
+    </table>
+
+    <div class="grid grid-cols-2 gap-8 mt-8 text-xs text-center">
+      <div>
+        <p>Mengetahui,</p>
+        <p id="printTtdAtasanJabatan">Kepala Bidang Peternakan dan Kesehatan Hewan</p>
+        <div class="h-16"></div>
+        <p class="font-bold underline" id="printTtdAtasanNama">MUHAMMAD ERWIN</p>
+        <p id="printTtdAtasanNip">NIP. 198406252011011010</p>
+      </div>
+      <div>
+        <p><span id="printTtdTempat">Rantau</span>, <span id="printTtdTanggal"></span></p>
+        <p>Pegawai yang Melaporkan,</p>
+        <div class="h-16"></div>
+        <p class="font-bold underline" id="printTtdNama">RAHMAT AL FAZRI, S.I.Pust</p>
+        <p id="printTtdNip">NIP. 199206122025211126</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ================= KONFIGURASI IDENTITAS BAWAAN & MASTER DATA =================
+    const DEFAULT_PROFIL = {
+      nama: 'RAHMAT AL FAZRI, S.I.Pust',
+      nip: '199206122025211126',
+      jabatan: 'PENATA LAYANAN OPERASIONAL',
+      unit: 'Seksi Benih dan Pembibitan Ternak - Bidang PKH',
+      instansi: 'Dinas Pertanian Kabupaten Tapin',
+      atasanNama: 'MUHAMMAD ERWIN',
+      atasanNip: '198406252011011010',
+      atasanJabatan: 'Kepala Bidang Peternakan dan Kesehatan Hewan',
+      jamMasuk: '08:00',
+      jamPulang: '17:00',
+      tempatCetak: 'Rantau'
+    };
+
+    const SKP_LIST = [
+      '1. Menerima dan Memeriksa Penataan Layanan Operasional dan pengelolaan Layanan Teknis',
+      '2. Mempelajari Pelaksanaan dan Pengelolaan Layanan Teknis',
+      '3. Menata pengelolaan Layanan Teknis',
+      '4. Melaksanakan Layanan Operasional',
+      '5. Melaksanakan Tugas Lain yang diperintahkan Oleh Atasan'
+    ];
+
+    const DEFAULT_TEMPLATES = [
+      { id: 'TPL-1', kategori: 'Operator', text: 'Mengoperasikan dan menginput data mutasi & layanan teknis pada aplikasi iSIKHNAS / sistem peternakan', skp: SKP_LIST[3], volume: 1, satuan: 'Input Data' },
+      { id: 'TPL-2', kategori: 'Operator', text: 'Melakukan verifikasi surat masuk/keluar dan pengarsipan dokumen digital Seksi Benih dan Pembibitan Ternak', skp: SKP_LIST[0], volume: 1, satuan: 'Dokumen' },
+      { id: 'TPL-3', kategori: 'Operator', text: 'Menata pengarsipan elektronik dan administrasi layanan teknis pembibitan ternak', skp: SKP_LIST[2], volume: 1, satuan: 'Berkas' },
+      { id: 'TPL-4', kategori: 'Statistik Ternak', text: 'Mengumpulkan, merekapitulasi, dan memverifikasi data populasi ternak per kecamatan di Kabupaten Tapin', skp: SKP_LIST[1], volume: 12, satuan: 'Data Kecamatan' },
+      { id: 'TPL-5', kategori: 'Statistik Ternak', text: 'Mengolah data distribusi benih/bibit ternak serta perkembangan inseminasi buatan (IB) dan kelahiran ternak', skp: SKP_LIST[1], volume: 1, satuan: 'Tabel Data' },
+      { id: 'TPL-6', kategori: 'Statistik Ternak', text: 'Menyusun tabulasi dan laporan statistik peternakan bulanan sebagai bahan evaluasi Bidang PKH', skp: SKP_LIST[2], volume: 1, satuan: 'Dokumen' },
+      { id: 'TPL-7', kategori: 'Pencairan Kontrak', text: 'Memeriksa kelengkapan dokumen SPJ pencairan kontrak pengadaan benih/bibit ternak (Kontrak, BAST, BAP, Faktur)', skp: SKP_LIST[0], volume: 1, satuan: 'Berkas SPJ' },
+      { id: 'TPL-8', kategori: 'Pencairan Kontrak', text: 'Menyusun dan memverifikasi berkas pengajuan SPP-LS/GU dan SPM pencairan kontrak pengadaan', skp: SKP_LIST[3], volume: 1, satuan: 'Berkas' },
+      { id: 'TPL-9', kategori: 'Pencairan Kontrak', text: 'Berkoordinasi dengan PPK, Bendahara Pengeluaran, dan penyedia terkait kelengkapan administrasi pencairan', skp: SKP_LIST[4], volume: 1, satuan: 'Kegiatan' },
+      { id: 'TPL-10', kategori: 'Apel / Kedisiplinan', text: 'Mengikuti Apel Pagi ASN di lingkungan Dinas Pertanian Kabupaten Tapin dan menerima arahan pimpinan', skp: SKP_LIST[4], volume: 1, satuan: 'Kegiatan' },
+      { id: 'TPL-11', kategori: 'Apel / Kedisiplinan', text: 'Mengikuti Apel Sore ASN dan evaluasi pelaksanaan tugas harian di Dinas Pertanian Kabupaten Tapin', skp: SKP_LIST[4], volume: 1, satuan: 'Kegiatan' }
+    ];
+
+    const DEFAULT_KONTRAK = [
+      {
+        id: 'KTR-001',
+        nomor: '027/112/SPK-PKH/DISTAN/2026',
+        namaPaket: 'Pengadaan Bibit Ternak Sapi Bali Unggul',
+        penyedia: 'CV. Tapin Agro Ternak',
+        nilai: 185000000,
+        tglKontrak: '2026-10-12',
+        tglBast: '2026-11-25',
+        status: 'Pengajuan SPP / SPM',
+        keterangan: 'Dokumen BAST dan Faktur Pajak telah diverifikasi PPK.'
+      },
+      {
+        id: 'KTR-002',
+        nomor: '027/128/SPK-PKH/DISTAN/2026',
+        namaPaket: 'Pengadaan Bibit Kambing Peranakan Etawa (PE)',
+        penyedia: 'CV. Banua Ternak Sejahtera',
+        nilai: 95000000,
+        tglKontrak: '2026-11-02',
+        tglBast: '2026-11-30',
+        status: 'Verifikasi Berkas / SPJ',
+        keterangan: 'Pemeriksaan kelengkapan administrasi serah terima bibit.'
+      }
+    ];
+
+    const TAHAPAN_KONTRAK = [
+      'Verifikasi Berkas / SPJ',
+      'Persetujuan PPK',
+      'Pengajuan SPP / SPM',
+      'Terbit SP2D / Selesai'
+    ];
+
+    const STORAGE_KEYS = {
+      profil: 'tapin_v7_profil',
+      jurnal: 'tapin_v7_jurnal',
+      templates: 'tapin_v7_templates',
+      kontrak: 'tapin_v7_kontrak'
+    };
+
+    let appData = { profil: {}, jurnal: [], templates: [], kontrak: [] };
+    let currentCalDate = new Date();
+    let selectedCalDateStr = '';
+    let selectedFileMeta = null;
+
+    // ================= UTILITAS & KALKULASI WAKTU WITA =================
+    function el(id) {
+      return document.getElementById(id);
+    }
+
+    function escapeHtml(str) {
+      return String(str === null || str === undefined ? '' : str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function getTodayISO() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    function formatIndoDate(dateStr) {
+      if (!dateStr || typeof dateStr !== 'string') return '-';
+      const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+      const parts = dateStr.split('-');
+      if (parts.length !== 3) return dateStr;
+      const mIdx = parseInt(parts[1], 10) - 1;
+      return `${parseInt(parts[2], 10)} ${months[mIdx] || parts[1]} ${parts[0]}`;
+    }
+
+    function formatRupiah(num) {
+      return 'Rp ' + (Number(num) || 0).toLocaleString('id-ID');
+    }
+
+    function formatRupiahInput(inputEl) {
+      if (!inputEl) return;
+      const raw = String(inputEl.value || '').replace(/\D/g, '');
+      inputEl.value = raw ? Number(raw).toLocaleString('id-ID') : '';
+    }
+
+    function parseRupiahValue(str) {
+      return Number(String(str || '0').replace(/\D/g, '')) || 0;
+    }
+
+    /**
+     * Menghitung durasi kerja efektif dalam menit (WITA)
+     * dan otomatis memotong irisan jam istirahat 12:00 - 13:00 (menit 720 - 780).
+     */
+    function calculateEffectiveMinutes(startStr, endStr) {
+      if (!startStr || !endStr) return 0;
+      const [sh, sm] = startStr.split(':').map(Number);
+      const [eh, em] = endStr.split(':').map(Number);
+      if ([sh, sm, eh, em].some(n => isNaN(n))) return 0;
+      const startMin = sh * 60 + sm;
+      const endMin = eh * 60 + em;
+      if (endMin <= startMin) return 0;
+      let total = endMin - startMin;
+      const breakStart = 12 * 60; // 12:00
+      const breakEnd = 13 * 60;   // 13:00
+      const overlap = Math.max(0, Math.min(endMin, breakEnd) - Math.max(startMin, breakStart));
+      total -= overlap;
+      return Math.max(0, total);
+    }
+
+    function formatMinutesLabel(mins) {
+      const safeMins = Math.max(0, Number(mins) || 0);
+      const h = Math.floor(safeMins / 60);
+      const m = safeMins % 60;
+      const jamDesimal = (safeMins / 60).toFixed(2);
+      if (h > 0 && m > 0) return `${h} Jam ${m} Menit (${jamDesimal} Jam)`;
+      if (h > 0) return `${h} Jam (${jamDesimal} Jam)`;
+      return `${m} Menit (${jamDesimal} Jam)`;
+    }
+
+    function updateDurationIndicator() {
+      const s = el('inputJamMulai') ? el('inputJamMulai').value : '';
+      const e = el('inputJamSelesai') ? el('inputJamSelesai').value : '';
+      const mins = calculateEffectiveMinutes(s, e);
+      if (el('durasiEfektifBadge')) {
+        el('durasiEfektifBadge').innerText = formatMinutesLabel(mins);
+      }
+    }
+
+    function applySessionPreset(startStr, endStr) {
+      if (el('inputJamMulai')) el('inputJamMulai').value = startStr;
+      if (el('inputJamSelesai')) el('inputJamSelesai').value = endStr;
+      updateDurationIndicator();
+    }
+
+    function showToast(message, type = 'success') {
+      const container = el('toastContainer');
+      if (!container) return;
+      const colors = {
+        success: 'bg-teal-900 text-white border-teal-700',
+        warning: 'bg-amber-400 text-slate-950 border-amber-500',
+        error: 'bg-rose-700 text-white border-rose-500'
+      };
+      const div = document.createElement('div');
+      div.className = `toast-anim px-4 py-2.5 rounded-xl border shadow-lg text-xs font-bold flex items-center gap-2 ${colors[type] || colors.success}`;
+      div.innerHTML = `<i class="fa-solid fa-circle-check"></i> <span>${escapeHtml(message)}</span>`;
+      container.appendChild(div);
+      setTimeout(() => {
+        if (div.parentNode) div.parentNode.removeChild(div);
+      }, 3200);
+    }
+
+    // ================= DATA CONTOH & PENYIMPANAN LOKAL =================
+    function createInitialDemoJurnal(tgl) {
+      return [
+        { id: 'JRN-201', tanggal: tgl, jamMulai: '08:00', jamSelesai: '08:15', kategori: 'Apel / Kedisiplinan', skp: SKP_LIST[4], uraian: 'Mengikuti Apel Pagi ASN di lingkungan Dinas Pertanian Kabupaten Tapin dan menerima arahan pimpinan.', volume: 1, satuan: 'Kegiatan', bukti: 'Daftar Hadir Apel Pagi', kontrakId: '', namaKontrak: '', statusKontrak: '', fileName: '' },
+        { id: 'JRN-202', tanggal: tgl, jamMulai: '08:15', jamSelesai: '09:45', kategori: 'Operator', skp: SKP_LIST[0], uraian: 'Menerima, memeriksa, dan mengagendakan surat masuk/keluar serta administrasi operasional pada Seksi Benih dan Pembibitan Ternak.', volume: 1, satuan: 'Berkas', bukti: 'Buku Agenda & Arsip Digital', kontrakId: '', namaKontrak: '', statusKontrak: '', fileName: '' },
+        { id: 'JRN-203', tanggal: tgl, jamMulai: '09:45', jamSelesai: '11:30', kategori: 'Operator', skp: SKP_LIST[3], uraian: 'Mengoperasikan aplikasi sistem informasi peternakan (iSIKHNAS) dan melakukan pemutakhiran data layanan teknis peternakan.', volume: 1, satuan: 'Input Data', bukti: 'Screenshot Sistem', kontrakId: '', namaKontrak: '', statusKontrak: '', fileName: '' },
+        { id: 'JRN-204', tanggal: tgl, jamMulai: '13:00', jamSelesai: '14:30', kategori: 'Statistik Ternak', skp: SKP_LIST[1], uraian: 'Mengumpulkan dan memverifikasi data statistik populasi ternak serta laporan perkembangan bibit ternak dari 12 kecamatan.', volume: 12, satuan: 'Data Kecamatan', bukti: 'Rekapitulasi Excel', kontrakId: '', namaKontrak: '', statusKontrak: '', fileName: '' },
+        { id: 'JRN-205', tanggal: tgl, jamMulai: '14:30', jamSelesai: '15:45', kategori: 'Statistik Ternak', skp: SKP_LIST[2], uraian: 'Menyusun tabulasi dan pemetaan distribusi benih/bibit ternak pada Seksi Benih dan Pembibitan Ternak Kabupaten Tapin.', volume: 1, satuan: 'Dokumen', bukti: 'Dokumen Statistik Ternak', kontrakId: '', namaKontrak: '', statusKontrak: '', fileName: '' },
+        { id: 'JRN-206', tanggal: tgl, jamMulai: '15:45', jamSelesai: '16:45', kategori: 'Pencairan Kontrak', skp: SKP_LIST[3], uraian: 'Memeriksa kelengkapan dokumen SPJ, BAST, dan berkas pengajuan SPP/SPM paket Pengadaan Bibit Ternak Sapi Bali Unggul (027/112/SPK-PKH/DISTAN/2026).', volume: 1, satuan: 'Berkas SPJ', bukti: 'Checklist Verifikasi Kontrak', kontrakId: 'KTR-001', namaKontrak: '027/112/SPK-PKH/DISTAN/2026 - Pengadaan Bibit Ternak Sapi Bali Unggul', statusKontrak: 'Pengajuan SPP / SPM', fileName: '' },
+        { id: 'JRN-207', tanggal: tgl, jamMulai: '16:45', jamSelesai: '17:00', kategori: 'Apel / Kedisiplinan', skp: SKP_LIST[4], uraian: 'Mengikuti Apel Sore ASN dan evaluasi pelaksanaan tugas harian di Dinas Pertanian Kabupaten Tapin.', volume: 1, satuan: 'Kegiatan', bukti: 'Daftar Hadir Apel Sore', kontrakId: '', namaKontrak: '', statusKontrak: '', fileName: '' }
+      ];
+    }
+
+    function safeParseStorage(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return fallback;
+        const parsed = JSON.parse(raw);
+        return parsed !== null && parsed !== undefined ? parsed : fallback;
+      } catch (err) {
+        console.warn('Storage read fallback:', key, err);
+        return fallback;
+      }
+    }
+
+    function saveAllLocal() {
+      try {
+        localStorage.setItem(STORAGE_KEYS.profil, JSON.stringify(appData.profil));
+        localStorage.setItem(STORAGE_KEYS.jurnal, JSON.stringify(appData.jurnal));
+        localStorage.setItem(STORAGE_KEYS.templates, JSON.stringify(appData.templates));
+        localStorage.setItem(STORAGE_KEYS.kontrak, JSON.stringify(appData.kontrak));
+      } catch (err) {
+        console.warn('Gagal menyimpan ke localStorage:', err);
+      }
+    }
+
+    function resetDemoData() {
+      const todayStr = getTodayISO();
+      appData = {
+        profil: { ...DEFAULT_PROFIL },
+        templates: JSON.parse(JSON.stringify(DEFAULT_TEMPLATES)),
+        kontrak: JSON.parse(JSON.stringify(DEFAULT_KONTRAK)),
+        jurnal: createInitialDemoJurnal(todayStr)
+      };
+      selectedCalDateStr = todayStr;
+      currentCalDate = new Date();
+      if (el('inputTanggal')) el('inputTanggal').value = todayStr;
+      if (el('filterBulan')) el('filterBulan').value = todayStr.slice(0, 7);
+      if (el('rekapBulanInput')) el('rekapBulanInput').value = todayStr.slice(0, 7);
+      saveAllLocal();
+      applyProfilToUI();
+      onKategoriChange();
+      updateDurationIndicator();
+      renderAllViews();
+      onTanggalChange();
+      showToast('Data contoh & profil bawaan berhasil dimuat ulang!');
+    }
+
+    function exportJSONBackup() {
+      try {
+        const payload = {
+          app: 'Jurnal Harian Kinerja ASN & Tracker Kontrak - Dinas Pertanian Kabupaten Tapin',
+          exportedAt: new Date().toISOString(),
+          data: appData
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Backup_Jurnal_Kontrak_Tapin_${getTodayISO()}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('Backup JSON berhasil diunduh!');
+      } catch (err) {
+        console.error('exportJSONBackup error:', err);
+        showToast('Gagal mengunduh backup JSON.', 'error');
+      }
+    }
+
+    function importJSONBackup(event) {
+      const file = event.target && event.target.files ? event.target.files[0] : null;
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          const src = parsed && parsed.data ? parsed.data : parsed;
+          if (!src || !Array.isArray(src.jurnal)) {
+            showToast('Format file backup JSON tidak sesuai.', 'error');
+            return;
+          }
+          appData = {
+            profil: { ...DEFAULT_PROFIL, ...(src.profil || {}) },
+            jurnal: src.jurnal,
+            templates: Array.isArray(src.templates) ? src.templates : JSON.parse(JSON.stringify(DEFAULT_TEMPLATES)),
+            kontrak: Array.isArray(src.kontrak) ? src.kontrak : JSON.parse(JSON.stringify(DEFAULT_KONTRAK))
+          };
+          saveAllLocal();
+          applyProfilToUI();
+          onKategoriChange();
+          renderAllViews();
+          onTanggalChange();
+          showToast('Data berhasil dipulihkan dari backup JSON!');
+        } catch (err) {
+          console.error('importJSONBackup error:', err);
+          showToast('Gagal membaca file JSON.', 'error');
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    // ================= INISIALISASI APLIKASI =================
+    function initApp() {
+      const todayStr = getTodayISO();
+      selectedCalDateStr = todayStr;
+
+      if (el('inputTanggal')) el('inputTanggal').value = todayStr;
+      if (el('filterBulan')) el('filterBulan').value = todayStr.slice(0, 7);
+      if (el('rekapBulanInput')) el('rekapBulanInput').value = todayStr.slice(0, 7);
+      if (el('kTglKontrak')) el('kTglKontrak').value = todayStr;
+      if (el('kTglBast')) el('kTglBast').value = todayStr;
+
+      appData.profil = safeParseStorage(STORAGE_KEYS.profil, { ...DEFAULT_PROFIL });
+      appData.templates = safeParseStorage(STORAGE_KEYS.templates, JSON.parse(JSON.stringify(DEFAULT_TEMPLATES)));
+      appData.kontrak = safeParseStorage(STORAGE_KEYS.kontrak, JSON.parse(JSON.stringify(DEFAULT_KONTRAK)));
+      appData.jurnal = safeParseStorage(STORAGE_KEYS.jurnal, createInitialDemoJurnal(todayStr));
+
+      if (!Array.isArray(appData.templates)) appData.templates = JSON.parse(JSON.stringify(DEFAULT_TEMPLATES));
+      if (!Array.isArray(appData.kontrak)) appData.kontrak = JSON.parse(JSON.stringify(DEFAULT_KONTRAK));
+      if (!Array.isArray(appData.jurnal)) appData.jurnal = createInitialDemoJurnal(todayStr);
+
+      saveAllLocal();
+      applyProfilToUI();
+      onKategoriChange();
+      updateDurationIndicator();
+      renderAllViews();
+      onTanggalChange();
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initApp);
+    } else {
+      initApp();
+    }
+
+    function renderAllViews() {
+      updateKontrakDropdowns();
+      renderMasterKontrakList();
+      renderJurnalList();
+      renderRekapBulanan();
+      renderTemplateManager();
+      renderCalendar();
+      renderCalDetailPanel(selectedCalDateStr || getTodayISO());
+    }
+
+    // ================= PROFIL & JADWAL =================
+    function applyProfilToUI() {
+      const p = appData.profil || DEFAULT_PROFIL;
+      if (el('bannerNama')) el('bannerNama').innerText = p.nama || DEFAULT_PROFIL.nama;
+      if (el('bannerNip')) el('bannerNip').innerText = p.nip || DEFAULT_PROFIL.nip;
+      if (el('bannerJabatan')) el('bannerJabatan').innerText = p.jabatan || DEFAULT_PROFIL.jabatan;
+      if (el('bannerUnit')) el('bannerUnit').innerText = p.unit || DEFAULT_PROFIL.unit;
+      if (el('bannerInstansi')) el('bannerInstansi').innerText = p.instansi || DEFAULT_PROFIL.instansi;
+      if (el('bannerAtasan')) el('bannerAtasan').innerText = p.atasanNama || DEFAULT_PROFIL.atasanNama;
+      if (el('bannerAtasanNip')) el('bannerAtasanNip').innerText = `NIP. ${p.atasanNip || DEFAULT_PROFIL.atasanNip} • ${p.atasanJabatan || DEFAULT_PROFIL.atasanJabatan}`;
+      if (el('headerJamKerja')) el('headerJamKerja').innerText = `${p.jamMasuk || '08:00'} - ${p.jamPulang || '17:00'} WITA`;
+
+      const words = (p.nama || 'RA').trim().split(/\s+/);
+      const inisial = words.length >= 2 ? (words[0][0] + words[1][0]).toUpperCase() : (words[0] || 'RA').slice(0, 2).toUpperCase();
+      if (el('avatarInisial')) el('avatarInisial').innerText = inisial;
+
+      if (el('profNama')) el('profNama').value = p.nama || '';
+      if (el('profNip')) el('profNip').value = p.nip || '';
+      if (el('profJabatan')) el('profJabatan').value = p.jabatan || '';
+      if (el('profUnit')) el('profUnit').value = p.unit || '';
+      if (el('profInstansi')) el('profInstansi').value = p.instansi || DEFAULT_PROFIL.instansi;
+      if (el('profAtasanNama')) el('profAtasanNama').value = p.atasanNama || '';
+      if (el('profAtasanNip')) el('profAtasanNip').value = p.atasanNip || '';
+      if (el('profAtasanJabatan')) el('profAtasanJabatan').value = p.atasanJabatan || '';
+      if (el('profTempat')) el('profTempat').value = p.tempatCetak || 'Rantau';
+      if (el('profJamMasuk')) el('profJamMasuk').value = p.jamMasuk || '08:00';
+      if (el('profJamPulang')) el('profJamPulang').value = p.jamPulang || '17:00';
+    }
+
+    function handleSaveProfil(e) {
+      e.preventDefault();
+      appData.profil = {
+        nama: el('profNama').value.trim(),
+        nip: el('profNip').value.trim(),
+        jabatan: el('profJabatan').value.trim(),
+        unit: el('profUnit').value.trim(),
+        instansi: el('profInstansi').value.trim() || DEFAULT_PROFIL.instansi,
+        atasanNama: el('profAtasanNama').value.trim(),
+        atasanNip: el('profAtasanNip').value.trim(),
+        atasanJabatan: el('profAtasanJabatan').value.trim(),
+        tempatCetak: el('profTempat').value.trim() || 'Rantau',
+        jamMasuk: el('profJamMasuk').value || '08:00',
+        jamPulang: el('profJamPulang').value || '17:00'
+      };
+      saveAllLocal();
+      applyProfilToUI();
+      showToast('Pengaturan profil & jadwal kerja berhasil disimpan!');
+    }
+
+    // ================= MASTER KONTRAK & TRACKER =================
+    function updateKontrakDropdowns() {
+      const sel = el('inputKontrakId');
+      if (sel) {
+        const currentVal = sel.value;
+        sel.innerHTML = `<option value="">-- Pilih Kontrak Terdaftar (${appData.kontrak.length} kontrak) --</option>`;
+        appData.kontrak.forEach(k => {
+          sel.innerHTML += `<option value="${escapeHtml(k.id)}">${escapeHtml(k.nomor)} • ${escapeHtml(k.namaPaket)} (${escapeHtml(k.status)})</option>`;
+        });
+        if (currentVal && appData.kontrak.some(k => k.id === currentVal)) {
+          sel.value = currentVal;
+        }
+      }
+      if (el('badgeJumlahKontrak')) el('badgeJumlahKontrak').innerText = appData.kontrak.length;
+    }
+
+    function onSelectKontrakDropdown() {
+      const sel = el('inputKontrakId');
+      if (!sel || !sel.value) return;
+      const kontrak = appData.kontrak.find(k => k.id === sel.value);
+      if (!kontrak) return;
+
+      if (el('inputStatusKontrak')) el('inputStatusKontrak').value = kontrak.status || 'Verifikasi Berkas / SPJ';
+      const uraianField = el('inputUraian');
+      if (uraianField && !uraianField.value.trim()) {
+        uraianField.value = `Memeriksa dan memproses berkas pencairan (${kontrak.status}) untuk paket ${kontrak.namaPaket} (${kontrak.nomor}) - ${kontrak.penyedia}.`;
+      }
+    }
+
+    function openQuickKontrakModal() {
+      const today = getTodayISO();
+      if (el('qkNomor')) el('qkNomor').value = '';
+      if (el('qkNamaPaket')) el('qkNamaPaket').value = '';
+      if (el('qkPenyedia')) el('qkPenyedia').value = '';
+      if (el('qkNilai')) el('qkNilai').value = '';
+      if (el('qkTglKontrak')) el('qkTglKontrak').value = today;
+      if (el('qkTglBast')) el('qkTglBast').value = today;
+      if (el('qkStatus')) el('qkStatus').value = 'Verifikasi Berkas / SPJ';
+      if (el('modalQuickKontrak')) el('modalQuickKontrak').classList.remove('hidden');
+    }
+
+    function closeQuickKontrakModal() {
+      if (el('modalQuickKontrak')) el('modalQuickKontrak').classList.add('hidden');
+    }
+
+    function handleQuickSaveKontrak(e) {
+      e.preventDefault();
+      const newKontrak = {
+        id: 'KTR-' + Date.now(),
+        nomor: el('qkNomor').value.trim(),
+        namaPaket: el('qkNamaPaket').value.trim(),
+        penyedia: el('qkPenyedia').value.trim(),
+        nilai: parseRupiahValue(el('qkNilai').value),
+        tglKontrak: el('qkTglKontrak').value,
+        tglBast: el('qkTglBast').value,
+        status: el('qkStatus').value,
+        keterangan: ''
+      };
+
+      appData.kontrak.unshift(newKontrak);
+      saveAllLocal();
+      closeQuickKontrakModal();
+      renderAllViews();
+
+      if (el('inputKategori')) {
+        el('inputKategori').value = 'Pencairan Kontrak';
+        onKategoriChange();
+      }
+      if (el('inputKontrakId')) {
+        el('inputKontrakId').value = newKontrak.id;
+        onSelectKontrakDropdown();
+      }
+      showToast('Kontrak pengadaan baru berhasil ditambahkan & ditautkan!');
+    }
+
+    function handleSaveKontrak(e) {
+      e.preventDefault();
+      const editId = el('editKontrakId') ? el('editKontrakId').value : '';
+      const obj = {
+        id: editId || ('KTR-' + Date.now()),
+        nomor: el('kNomor').value.trim(),
+        namaPaket: el('kNamaPaket').value.trim(),
+        penyedia: el('kPenyedia').value.trim(),
+        nilai: parseRupiahValue(el('kNilai').value),
+        tglKontrak: el('kTglKontrak').value,
+        tglBast: el('kTglBast').value,
+        status: el('kStatus').value,
+        keterangan: el('kKeterangan') ? el('kKeterangan').value.trim() : ''
+      };
+
+      if (editId) {
+        const idx = appData.kontrak.findIndex(k => k.id === editId);
+        if (idx !== -1) appData.kontrak[idx] = obj;
+        showToast('Perubahan data kontrak berhasil disimpan!');
+      } else {
+        appData.kontrak.unshift(obj);
+        showToast('Kontrak pengadaan baru berhasil disimpan!');
+      }
+
+      saveAllLocal();
+      resetKontrakForm();
+      renderAllViews();
+    }
+
+    function startEditKontrak(id) {
+      const k = appData.kontrak.find(item => item.id === id);
+      if (!k) return;
+      if (el('editKontrakId')) el('editKontrakId').value = k.id;
+      if (el('kNomor')) el('kNomor').value = k.nomor;
+      if (el('kNamaPaket')) el('kNamaPaket').value = k.namaPaket;
+      if (el('kPenyedia')) el('kPenyedia').value = k.penyedia;
+      if (el('kNilai')) el('kNilai').value = Number(k.nilai || 0).toLocaleString('id-ID');
+      if (el('kTglKontrak')) el('kTglKontrak').value = k.tglKontrak;
+      if (el('kTglBast')) el('kTglBast').value = k.tglBast;
+      if (el('kStatus')) el('kStatus').value = k.status;
+      if (el('kKeterangan')) el('kKeterangan').value = k.keterangan || '';
+
+      if (el('kontrakFormTitle')) el('kontrakFormTitle').innerHTML = `<i class="fa-solid fa-pen-to-square text-amber-600"></i> Edit Data Kontrak Pengadaan`;
+      if (el('btnBatalEditKontrak')) el('btnBatalEditKontrak').classList.remove('hidden');
+      if (el('btnSubmitKontrak')) el('btnSubmitKontrak').innerHTML = `<i class="fa-solid fa-check"></i> Simpan Perubahan Kontrak`;
+      if (el('kontrakFormCard')) el('kontrakFormCard').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function resetKontrakForm() {
+      const today = getTodayISO();
+      if (el('editKontrakId')) el('editKontrakId').value = '';
+      if (el('kNomor')) el('kNomor').value = '';
+      if (el('kNamaPaket')) el('kNamaPaket').value = '';
+      if (el('kPenyedia')) el('kPenyedia').value = '';
+      if (el('kNilai')) el('kNilai').value = '';
+      if (el('kTglKontrak')) el('kTglKontrak').value = today;
+      if (el('kTglBast')) el('kTglBast').value = today;
+      if (el('kStatus')) el('kStatus').value = 'Verifikasi Berkas / SPJ';
+      if (el('kKeterangan')) el('kKeterangan').value = '';
+
+      if (el('kontrakFormTitle')) el('kontrakFormTitle').innerHTML = `<i class="fa-solid fa-file-signature text-amber-600"></i> Input Kontrak Pengadaan Baru`;
+      if (el('btnBatalEditKontrak')) el('btnBatalEditKontrak').classList.add('hidden');
+      if (el('btnSubmitKontrak')) el('btnSubmitKontrak').innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Simpan Data Kontrak`;
+    }
+
+    function updateStatusKontrakDirect(id, newStatus) {
+      const k = appData.kontrak.find(item => item.id === id);
+      if (!k) return;
+      k.status = newStatus;
+      saveAllLocal();
+      renderAllViews();
+      showToast(`Tahapan kontrak diperbarui ke: ${newStatus}`);
+    }
+
+    function deleteKontrak(id) {
+      appData.kontrak = appData.kontrak.filter(k => k.id !== id);
+      if (el('editKontrakId') && el('editKontrakId').value === id) resetKontrakForm();
+      saveAllLocal();
+      renderAllViews();
+      showToast('Data kontrak dihapus.', 'warning');
+    }
+
+    function catatJurnalUntukKontrak(kontrakId) {
+      const k = appData.kontrak.find(item => item.id === kontrakId);
+      if (!k) return;
+      switchTab('jurnal');
+      if (el('inputKategori')) {
+        el('inputKategori').value = 'Pencairan Kontrak';
+        onKategoriChange();
+      }
+      if (el('inputKontrakId')) {
+        el('inputKontrakId').value = k.id;
+        onSelectKontrakDropdown();
+      }
+      if (el('formCardContainer')) el('formCardContainer').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function getContractPercent(status) {
+      const idx = TAHAPAN_KONTRAK.indexOf(status);
+      if (idx === -1) return 25;
+      return (idx + 1) * 25;
+    }
+
+    function getStepProgressHtml(status) {
+      const currentIdx = TAHAPAN_KONTRAK.indexOf(status);
+      const pct = getContractPercent(status);
+      return `
+        <div class="space-y-1.5 mt-2">
+          <div class="flex items-center justify-between text-[10px] font-bold">
+            <span class="text-slate-500">Progres Pencairan Otomatis</span>
+            <span class="${currentIdx === 3 ? 'text-emerald-700' : 'text-amber-700'}">${pct}%</span>
+          </div>
+          <div class="grid grid-cols-4 gap-1.5">
+            ${TAHAPAN_KONTRAK.map((step, i) => {
+              const done = i <= currentIdx;
+              const barColor = done ? (currentIdx === 3 ? 'bg-emerald-600' : 'bg-amber-500') : 'bg-slate-200';
+              return `
+                <div>
+                  <div class="h-1.5 rounded-full ${barColor}"></div>
+                  <div class="text-[9px] mt-0.5 truncate ${done ? 'font-bold text-slate-700' : 'text-slate-400'}">${i + 1}. ${escapeHtml(step.split(' ')[0])}</div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderMasterKontrakList() {
+      const container = el('masterKontrakListContainer');
+      const tableBody = el('masterKontrakTableBody');
+      const filterStatus = el('filterStatusKontrakMaster') ? el('filterStatusKontrakMaster').value : 'ALL';
+      const list = appData.kontrak.filter(k => filterStatus === 'ALL' || k.status === filterStatus);
+
+      const totalAllNilai = appData.kontrak.reduce((sum, k) => sum + (Number(k.nilai) || 0), 0);
+      if (el('masterKontrakSummaryText')) {
+        el('masterKontrakSummaryText').innerText = `Total Anggaran: ${formatRupiah(totalAllNilai)} (${appData.kontrak.length} Kontrak Terdaftar)`;
+      }
+
+      if (tableBody) {
+        tableBody.innerHTML = list.length === 0
+          ? `<tr><td colspan="4" class="px-3 py-4 text-center text-slate-500">Belum ada data kontrak pengadaan.</td></tr>`
+          : list.map(k => {
+              const pct = getContractPercent(k.status);
+              return `
+                <tr class="hover:bg-slate-50">
+                  <td class="px-3 py-2.5">
+                    <div class="font-bold text-slate-800">${escapeHtml(k.namaPaket)}</div>
+                    <div class="text-[11px] text-slate-500">${escapeHtml(k.nomor)}</div>
+                  </td>
+                  <td class="px-3 py-2.5 text-slate-700">${escapeHtml(k.penyedia)}</td>
+                  <td class="px-3 py-2.5 text-right font-bold text-teal-800 whitespace-nowrap">${formatRupiah(k.nilai)}</td>
+                  <td class="px-3 py-2.5 text-center">
+                    <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${pct === 100 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-900'}">${pct}% • ${escapeHtml(k.status)}</span>
+                  </td>
+                </tr>
+              `;
+            }).join('');
+      }
+
+      if (!container) return;
+      if (list.length === 0) {
+        container.innerHTML = `<div class="bg-white p-6 rounded-2xl border border-slate-200 text-center text-slate-500 text-xs sm:text-sm">Belum ada kontrak pengadaan pada filter ini. Silakan input kontrak baru di formulir sebelah kiri.</div>`;
+        return;
+      }
+
+      container.innerHTML = list.map(k => {
+        const linkedJurnalCount = appData.jurnal.filter(j => j.kontrakId === k.id).length;
+        const badgeColor = k.status === 'Terbit SP2D / Selesai'
+          ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+          : 'bg-amber-100 text-amber-900 border-amber-300';
+
+        return `
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2.5">
+            <div class="flex flex-wrap items-start justify-between gap-2">
+              <div>
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">${escapeHtml(k.nomor)}</span>
+                  <span class="text-[11px] font-bold px-2 py-0.5 rounded border ${badgeColor}">${escapeHtml(k.status)}</span>
+                </div>
+                <h4 class="font-bold text-slate-900 text-sm mt-1">${escapeHtml(k.namaPaket)}</h4>
+                <p class="text-xs text-slate-600"><i class="fa-solid fa-building text-slate-400 mr-1"></i>Penyedia: <strong>${escapeHtml(k.penyedia)}</strong> • Nilai: <strong class="text-teal-800">${formatRupiah(k.nilai)}</strong></p>
+                <p class="text-[11px] text-slate-500 mt-0.5">Kontrak: ${formatIndoDate(k.tglKontrak)} • Batas BAST: ${formatIndoDate(k.tglBast)} • <span class="text-blue-700 font-semibold">${linkedJurnalCount} Aktivitas Jurnal Tertaut</span></p>
+                ${k.keterangan ? `<p class="text-[11px] text-slate-500 italic mt-0.5">Catatan: ${escapeHtml(k.keterangan)}</p>` : ''}
+              </div>
+
+              <div class="flex items-center gap-1 shrink-0">
+                <button type="button" onclick="catatJurnalUntukKontrak('${escapeHtml(k.id)}')" class="px-2.5 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-900 border border-teal-200 text-xs font-bold cursor-pointer">
+                  + Catat ke Jurnal
+                </button>
+                <button type="button" onclick="startEditKontrak('${escapeHtml(k.id)}')" class="px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-semibold cursor-pointer" title="Edit Kontrak">
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <button type="button" onclick="deleteKontrak('${escapeHtml(k.id)}')" class="px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold cursor-pointer" title="Hapus Kontrak">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </div>
+            </div>
+
+            ${getStepProgressHtml(k.status)}
+
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2 text-xs">
+              <span class="text-slate-500 font-medium">Ubah Progres Pencairan:</span>
+              <select onchange="updateStatusKontrakDirect('${escapeHtml(k.id)}', this.value)" class="border border-slate-300 rounded-xl px-2.5 py-1 text-xs font-bold text-slate-800 bg-slate-50 outline-none">
+                ${TAHAPAN_KONTRAK.map(st => `<option value="${escapeHtml(st)}" ${st === k.status ? 'selected' : ''}>${escapeHtml(st)}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ================= JURNAL HARIAN & GENERATOR =================
+    function onKategoriChange() {
+      const katEl = el('inputKategori');
+      if (!katEl) return;
+      const kat = katEl.value;
+      const kontrakBox = el('kontrakTrackerFields');
+      if (kontrakBox) {
+        if (kat === 'Pencairan Kontrak') {
+          kontrakBox.classList.remove('hidden');
+          updateKontrakDropdowns();
+        } else {
+          kontrakBox.classList.add('hidden');
+        }
+      }
+
+      const sel = el('inputTemplate');
+      if (sel) {
+        sel.innerHTML = '<option value="">-- Pilih template kegiatan --</option>';
+        appData.templates
+          .filter(t => t.kategori === kat)
+          .forEach(t => {
+            sel.innerHTML += `<option value="${escapeHtml(t.id)}">${escapeHtml(t.text)}</option>`;
+          });
+      }
+    }
+
+    function applyTemplate() {
+      const sel = el('inputTemplate');
+      if (!sel || !sel.value) return;
+      const tpl = appData.templates.find(t => t.id === sel.value);
+      if (!tpl) return;
+      if (el('inputUraian')) el('inputUraian').value = tpl.text;
+      if (el('inputSkp')) el('inputSkp').value = tpl.skp;
+      if (el('inputVolume')) el('inputVolume').value = tpl.volume || 1;
+      if (el('inputSatuan')) el('inputSatuan').value = tpl.satuan || 'Dokumen';
+    }
+
+    function fillApel(waktu) {
+      if (el('inputKategori')) {
+        el('inputKategori').value = 'Apel / Kedisiplinan';
+        onKategoriChange();
+      }
+      if (el('inputSkp')) el('inputSkp').value = SKP_LIST[4];
+      if (el('inputVolume')) el('inputVolume').value = 1;
+      if (el('inputSatuan')) el('inputSatuan').value = 'Kegiatan';
+
+      if (waktu === 'pagi') {
+        if (el('inputJamMulai')) el('inputJamMulai').value = '08:00';
+        if (el('inputJamSelesai')) el('inputJamSelesai').value = '08:15';
+        if (el('inputUraian')) el('inputUraian').value = 'Mengikuti Apel Pagi ASN di lingkungan Dinas Pertanian Kabupaten Tapin dan menerima arahan pimpinan.';
+        if (el('inputBukti')) el('inputBukti').value = 'Daftar Hadir Apel Pagi';
+      } else {
+        if (el('inputJamMulai')) el('inputJamMulai').value = '16:45';
+        if (el('inputJamSelesai')) el('inputJamSelesai').value = '17:00';
+        if (el('inputUraian')) el('inputUraian').value = 'Mengikuti Apel Sore ASN dan evaluasi pelaksanaan tugas harian di Dinas Pertanian Kabupaten Tapin.';
+        if (el('inputBukti')) el('inputBukti').value = 'Daftar Hadir Apel Sore';
+      }
+      updateDurationIndicator();
+    }
+
+    function onTanggalChange() {
+      const tglEl = el('inputTanggal');
+      if (!tglEl) return;
+      const tgl = tglEl.value;
+      const dayItems = appData.jurnal.filter(j => j.tanggal === tgl);
+      const count = dayItems.length;
+      const dayMins = dayItems.reduce((sum, x) => sum + calculateEffectiveMinutes(x.jamMulai, x.jamSelesai), 0);
+      if (el('statTargetHari')) el('statTargetHari').innerText = `${count} / 7`;
+      if (el('statTargetStatus')) {
+        el('statTargetStatus').innerText = count >= 7
+          ? `Terpenuhi • ${formatMinutesLabel(dayMins)}`
+          : `Kurang ${7 - count} aktivitas • ${formatMinutesLabel(dayMins)}`;
+      }
+    }
+
+    function handleFileSelect(e) {
+      const file = e.target && e.target.files ? e.target.files[0] : null;
+      if (!file) return;
+      const sizeKb = Math.max(1, Math.round(file.size / 1024));
+      selectedFileMeta = { name: file.name, sizeText: `${sizeKb} KB` };
+      if (el('filePickerLabel')) el('filePickerLabel').innerText = file.name;
+      if (el('btnClearFile')) el('btnClearFile').classList.remove('hidden');
+      if (el('filePreviewBox')) {
+        el('filePreviewBox').classList.remove('hidden');
+        el('filePreviewBox').innerHTML = `<span><i class="fa-solid fa-file-circle-check mr-1"></i>${escapeHtml(file.name)} (${sizeKb} KB)</span><span class="font-bold">Siap dilampirkan</span>`;
+      }
+    }
+
+    function clearSelectedFile() {
+      selectedFileMeta = null;
+      if (el('inputFileBukti')) el('inputFileBukti').value = '';
+      if (el('filePickerLabel')) el('filePickerLabel').innerText = 'Pilih File Foto / PDF Bukti';
+      if (el('btnClearFile')) el('btnClearFile').classList.add('hidden');
+      if (el('filePreviewBox')) {
+        el('filePreviewBox').classList.add('hidden');
+        el('filePreviewBox').innerHTML = '';
+      }
+    }
+
+    function generate7AktivitasForDate(targetDate, paketMode) {
+      const tgl = targetDate || getTodayISO();
+      const d = new Date(tgl + 'T00:00:00');
+      const day = isNaN(d.getTime()) ? 1 : d.getDay();
+      const isSeninKamis = (day >= 1 && day <= 4);
+      const jenisPaket = paketMode || (el('presetPaketSelect') ? el('presetPaketSelect').value : 'terpadu');
+
+      const activeKontrak = appData.kontrak[0] || null;
+      const kontrakRefText = activeKontrak
+        ? `paket ${activeKontrak.namaPaket} (${activeKontrak.nomor})`
+        : 'pengadaan benih/bibit ternak Seksi Benih dan Pembibitan Ternak';
+
+      const slotAwal = {
+        tanggal: tgl, jamMulai: '08:00', jamSelesai: '08:15',
+        kategori: isSeninKamis ? 'Apel / Kedisiplinan' : 'Operator',
+        skp: isSeninKamis ? SKP_LIST[4] : SKP_LIST[0],
+        uraian: isSeninKamis
+          ? 'Mengikuti Apel Pagi ASN di lingkungan Dinas Pertanian Kabupaten Tapin dan menerima arahan pimpinan.'
+          : 'Melakukan pengecekan kesiapan sistem operasional dan agenda layanan teknis pagi hari.',
+        volume: 1, satuan: isSeninKamis ? 'Kegiatan' : 'Dokumen',
+        bukti: isSeninKamis ? 'Daftar Hadir Apel Pagi' : 'Log Sistem',
+        kontrakId: '', namaKontrak: '', statusKontrak: '', fileName: ''
+      };
+
+      const slotAkhir = {
+        tanggal: tgl, jamMulai: '16:45', jamSelesai: '17:00',
+        kategori: isSeninKamis ? 'Apel / Kedisiplinan' : 'Operator',
+        skp: isSeninKamis ? SKP_LIST[4] : SKP_LIST[2],
+        uraian: isSeninKamis
+          ? 'Mengikuti Apel Sore ASN dan evaluasi pelaksanaan tugas harian di Dinas Pertanian Kabupaten Tapin.'
+          : 'Melakukan pencadangan (backup) file pekerjaan harian dan pengarsipan dokumen layanan teknis.',
+        volume: 1, satuan: isSeninKamis ? 'Kegiatan' : 'Arsip',
+        bukti: isSeninKamis ? 'Daftar Hadir Apel Sore' : 'Folder Arsip Digital',
+        kontrakId: '', namaKontrak: '', statusKontrak: '', fileName: ''
+      };
+
+      const corePresets = {
+        terpadu: [
+          { jamMulai: '08:15', jamSelesai: '09:45', kategori: 'Operator', skp: SKP_LIST[0], uraian: 'Menerima, memeriksa, dan mengagendakan surat masuk/keluar serta administrasi operasional Seksi Benih dan Pembibitan Ternak.', volume: 1, satuan: 'Berkas', bukti: 'Buku Agenda & Arsip', kontrakId: '', namaKontrak: '', statusKontrak: '' },
+          { jamMulai: '09:45', jamSelesai: '11:30', kategori: 'Operator', skp: SKP_LIST[3], uraian: 'Mengoperasikan aplikasi sistem informasi peternakan (iSIKHNAS) dan pemutakhiran data layanan teknis peternakan.', volume: 1, satuan: 'Input Data', bukti: 'Screenshot Sistem', kontrakId: '', namaKontrak: '', statusKontrak: '' },
+          { jamMulai: '13:00', jamSelesai: '14:30', kategori: 'Statistik Ternak', skp: SKP_LIST[1], uraian: 'Mengumpulkan dan memverifikasi data statistik populasi ternak serta laporan perkembangan bibit ternak per kecamatan.', volume: 12, satuan: 'Data Kecamatan', bukti: 'Rekapitulasi Excel', kontrakId: '', namaKontrak: '', statusKontrak: '' },
+          { jamMulai: '14:30', jamSelesai: '15:45', kategori: 'Statistik Ternak', skp: SKP_LIST[2], uraian: 'Menyusun tabulasi dan pemetaan distribusi benih/bibit ternak Kabupaten Tapin.', volume: 1, satuan: 'Dokumen', bukti: 'Dokumen Statistik Ternak', kontrakId: '', namaKontrak: '', statusKontrak: '' },
+          { jamMulai: '15:45', jamSelesai: '16:45', kategori: 'Pencairan Kontrak', skp: SKP_LIST[3], uraian: `Memeriksa kelengkapan dokumen SPJ, BAST, dan berkas pengajuan pencairan ${kontrakRefText}.`, volume: 1, satuan: 'Berkas SPJ', bukti: 'Checklist Verifikasi Kontrak', kontrakId: activeKontrak ? activeKontrak.id : '', namaKontrak: activeKontrak ? `${activeKontrak.nomor} - ${activeKontrak.namaPaket}` : '', statusKontrak: activeKontrak ? activeKontrak.status : 'Verifikasi Berkas / SPJ' }
+        ],
+        operator: [
+          { jamMulai: '08:15', jamSelesai: '09:45', kategori: 'Operator', skp: SKP_LIST[0], uraian: 'Menerima dan memeriksa kelengkapan dokumen permohonan layanan teknis benih dan pembibitan ternak.', volume: 1, satuan: 'Berkas', bukti: 'Register Layanan', kontrakId: '', namaKontrak: '', statusKontrak: '' },
+          { jamMulai: '09:45', jamSelesai: '11:30', kategori: 'Operator', skp: SKP_LIST[3], uraian: 'Melakukan input dan pembaruan database registrasi ternak bibit pada sistem informasi peternakan.', volume: 1, satuan: 'Input Data', bukti: 'Screenshot Sistem', kontrakId: '', namaKontrak: '', statusKontrak: '' },
+          { jamMulai: '13:00', jamSelesai: '14:30', kategori: 'Operator', skp: SKP_LIST[2], uraian: 'Menata pengarsipan digital surat menyurat dan dokumen administrasi Seksi Benih dan Pembibitan Ternak.', volume: 1, satuan: 'Arsip', bukti: 'Folder Arsip Elektronik', kontrakId: '', namaKontrak: '', statusKontrak: '' },
+          { jamMulai: '14:30', jamSelesai: '15:45', kategori: 'Operator', skp: SKP_LIST[3], uraian: 'Menyiapkan konsep surat dinas dan bahan paparan operasional kegiatan pembibitan ternak.', volume: 1, satuan: 'Dokumen', bukti: 'Draf Surat Dinas', kontrakId: '', namaKontrak: '', statusKontrak: '' },
+          { jamMulai: '15:45', jamSelesai: '16:45', kategori: 'Operator', skp: SKP_LIST[4], uraian: 'Melakukan sinkronisasi dan validasi laporan operasional harian bersama tim teknis bidang.', volume: 1, satuan: 'Laporan', bukti: 'Catatan Koordinasi', kontrakId: '', namaKontrak: '', statusKontrak: '' }
+        ],
+        statistik: [
+          { jamMulai: '08:15', jamSelesai: '09:45', kategori: 'Statistik Ternak', skp: SKP_LIST[0], uraian: 'Menerima dan memeriksa laporan masuk data populasi ternak sapi, kerbau, kambing, dan unggas dari petugas kecamatan.', volume: 12, satuan: 'Laporan Kecamatan', bukti: 'Rekap Data Masuk', kontrakId: '', namaKontrak: '', statusKontrak: '' },
+          { jamMulai: '09:45', jamSelesai: '11:30', kategori: 'Statistik Ternak', skp: SKP_LIST[1], uraian: 'Mengolah dan memverifikasi data kelahiran ternak hasil inseminasi buatan (IB) dan kawin alam.', volume: 1, satuan: 'Tabel Data', bukti: 'Lembar Kerja Statistik', kontrakId: '', namaKontrak: '', statusKontrak: '' },
+          { jamMulai: '13:00', jamSelesai: '14:30', kategori: 'Statistik Ternak', skp: SKP_LIST[2], uraian: 'Menyusun tabulasi distribusi benih dan bibit ternak unggul di wilayah Kabupaten Tapin.', volume: 1, satuan: 'Dokumen', bukti: 'Tabel Distribusi Bibit', kontrakId: '', namaKontrak: '', statusKontrak: '' },
+          { jamMulai: '14:30', jamSelesai: '15:45', kategori: 'Statistik Ternak', skp: SKP_LIST[3], uraian: 'Membuat grafik perkembangan populasi dan mutasi ternak bulanan Bidang Peternakan dan Kesehatan Hewan.', volume: 1, satuan: 'Grafik Laporan', bukti: 'File Statistik PKH', kontrakId: '', namaKontrak: '', statusKontrak: '' },
+          { jamMulai: '15:45', jamSelesai: '16:45', kategori: 'Operator', skp: SKP_LIST[3], uraian: 'Mengunggah dan mengarsipkan rekapitulasi data statistik ternak ke database digital seksi.', volume: 1, satuan: 'Arsip Data', bukti: 'Screenshot Database', kontrakId: '', namaKontrak: '', statusKontrak: '' }
+        ],
+        kontrak: [
+          { jamMulai: '08:15', jamSelesai: '09:45', kategori: 'Pencairan Kontrak', skp: SKP_LIST[0], uraian: `Menerima dan memeriksa kelengkapan berkas kontrak/SPK, BAST, dan BAP untuk ${kontrakRefText}.`, volume: 1, satuan: 'Berkas SPJ', bukti: 'Checklist Kelengkapan SPJ', kontrakId: activeKontrak ? activeKontrak.id : '', namaKontrak: activeKontrak ? `${activeKontrak.nomor} - ${activeKontrak.namaPaket}` : '', statusKontrak: activeKontrak ? activeKontrak.status : 'Verifikasi Berkas / SPJ' },
+          { jamMulai: '09:45', jamSelesai: '11:30', kategori: 'Pencairan Kontrak', skp: SKP_LIST[3], uraian: `Melakukan verifikasi kwitansi pembayaran, faktur pajak, dan rincian volume barang pada ${kontrakRefText}.`, volume: 1, satuan: 'Dokumen', bukti: 'Lembar Verifikasi Keuangan', kontrakId: activeKontrak ? activeKontrak.id : '', namaKontrak: activeKontrak ? `${activeKontrak.nomor} - ${activeKontrak.namaPaket}` : '', statusKontrak: activeKontrak ? activeKontrak.status : 'Verifikasi Berkas / SPJ' },
+          { jamMulai: '13:00', jamSelesai: '14:30', kategori: 'Pencairan Kontrak', skp: SKP_LIST[3], uraian: `Menyusun berkas pengajuan SPP-LS/GU dan kelengkapan administrasi SPM pencairan ${kontrakRefText}.`, volume: 1, satuan: 'Berkas SPP/SPM', bukti: 'Register Pengajuan SPM', kontrakId: activeKontrak ? activeKontrak.id : '', namaKontrak: activeKontrak ? `${activeKontrak.nomor} - ${activeKontrak.namaPaket}` : '', statusKontrak: activeKontrak ? activeKontrak.status : 'Pengajuan SPP / SPM' },
+          { jamMulai: '14:30', jamSelesai: '15:45', kategori: 'Pencairan Kontrak', skp: SKP_LIST[4], uraian: 'Berkoordinasi dengan PPK, Bendahara Pengeluaran, dan penyedia barang/jasa terkait perbaikan/kelengkapan dokumen pencairan.', volume: 1, satuan: 'Kegiatan', bukti: 'Catatan Koordinasi PPK', kontrakId: activeKontrak ? activeKontrak.id : '', namaKontrak: activeKontrak ? `${activeKontrak.nomor} - ${activeKontrak.namaPaket}` : '', statusKontrak: activeKontrak ? activeKontrak.status : 'Persetujuan PPK' },
+          { jamMulai: '15:45', jamSelesai: '16:45', kategori: 'Operator', skp: SKP_LIST[2], uraian: 'Melakukan pemindaian (scanning) dan pengarsipan digital seluruh dokumen SPJ pencairan kontrak pengadaan.', volume: 1, satuan: 'Arsip Digital', bukti: 'Folder Arsip SPJ', kontrakId: '', namaKontrak: '', statusKontrak: '' }
+        ]
+      };
+
+      const selectedCore = corePresets[jenisPaket] || corePresets.terpadu;
+      const nowBase = Date.now();
+      const full7 = [
+        { ...slotAwal, id: `JRN-${nowBase}-1` },
+        ...selectedCore.map((item, i) => ({
+          ...item,
+          id: `JRN-${nowBase}-${i + 2}`,
+          tanggal: tgl,
+          fileName: ''
+        })),
+        { ...slotAkhir, id: `JRN-${nowBase}-7` }
+      ];
+
+      appData.jurnal = [...full7, ...appData.jurnal];
+      saveAllLocal();
+      if (el('filterBulan')) el('filterBulan').value = tgl.slice(0, 7);
+      selectedCalDateStr = tgl;
+      renderAllViews();
+      onTanggalChange();
+      showToast(`7 aktivitas standar berhasil dibuat untuk ${formatIndoDate(tgl)}!`);
+    }
+
+    function generate7Aktivitas() {
+      const tgl = el('inputTanggal') ? el('inputTanggal').value : getTodayISO();
+      if (!tgl) {
+        showToast('Pilih tanggal terlebih dahulu.', 'warning');
+        return;
+      }
+      generate7AktivitasForDate(tgl);
+    }
+
+    function handleSaveJurnal(e) {
+      e.preventDefault();
+      const editId = el('editJurnalId') ? el('editJurnalId').value : '';
+      const kat = el('inputKategori').value;
+      const existingItem = editId ? appData.jurnal.find(j => j.id === editId) : null;
+
+      let kontrakId = '';
+      let namaKontrak = '';
+      let statusKontrak = '';
+
+      if (kat === 'Pencairan Kontrak') {
+        kontrakId = el('inputKontrakId') ? el('inputKontrakId').value : '';
+        statusKontrak = el('inputStatusKontrak') ? el('inputStatusKontrak').value : 'Verifikasi Berkas / SPJ';
+        const kontrakObj = appData.kontrak.find(k => k.id === kontrakId);
+        if (kontrakObj) {
+          namaKontrak = `${kontrakObj.nomor} - ${kontrakObj.namaPaket}`;
+          kontrakObj.status = statusKontrak;
+        }
+      }
+
+      const entry = {
+        id: editId || ('JRN-' + Date.now()),
+        tanggal: el('inputTanggal').value,
+        jamMulai: el('inputJamMulai').value,
+        jamSelesai: el('inputJamSelesai').value,
+        kategori: kat,
+        skp: el('inputSkp').value,
+        uraian: el('inputUraian').value.trim(),
+        volume: Number(el('inputVolume').value) || 1,
+        satuan: el('inputSatuan').value.trim() || 'Dokumen',
+        bukti: el('inputBukti').value.trim(),
+        kontrakId: kontrakId,
+        namaKontrak: namaKontrak,
+        statusKontrak: statusKontrak,
+        fileName: selectedFileMeta ? selectedFileMeta.name : (existingItem ? (existingItem.fileName || '') : '')
+      };
+
+      if (editId) {
+        const idx = appData.jurnal.findIndex(j => j.id === editId);
+        if (idx !== -1) appData.jurnal[idx] = entry;
+        showToast('Perubahan aktivitas berhasil disimpan!');
+      } else {
+        appData.jurnal.unshift(entry);
+        showToast('Aktivitas baru ditambahkan ke jurnal!');
+      }
+
+      saveAllLocal();
+      selectedCalDateStr = entry.tanggal;
+      if (el('filterBulan')) el('filterBulan').value = entry.tanggal.slice(0, 7);
+      resetJurnalForm();
+      renderAllViews();
+      onTanggalChange();
+    }
+
+    function startEditJurnal(id) {
+      const item = appData.jurnal.find(j => j.id === id);
+      if (!item) return;
+
+      if (el('editJurnalId')) el('editJurnalId').value = item.id;
+      if (el('inputTanggal')) el('inputTanggal').value = item.tanggal;
+      if (el('inputJamMulai')) el('inputJamMulai').value = item.jamMulai;
+      if (el('inputJamSelesai')) el('inputJamSelesai').value = item.jamSelesai;
+      updateDurationIndicator();
+
+      if (el('inputKategori')) {
+        el('inputKategori').value = item.kategori;
+        onKategoriChange();
+      }
+
+      if (item.kategori === 'Pencairan Kontrak') {
+        updateKontrakDropdowns();
+        if (el('inputKontrakId')) el('inputKontrakId').value = item.kontrakId || '';
+        if (el('inputStatusKontrak')) el('inputStatusKontrak').value = item.statusKontrak || 'Verifikasi Berkas / SPJ';
+      }
+
+      if (el('inputSkp')) el('inputSkp').value = item.skp;
+      if (el('inputUraian')) el('inputUraian').value = item.uraian;
+      if (el('inputVolume')) el('inputVolume').value = item.volume;
+      if (el('inputSatuan')) el('inputSatuan').value = item.satuan;
+      if (el('inputBukti')) el('inputBukti').value = item.bukti || '';
+
+      clearSelectedFile();
+      if (item.fileName && el('filePreviewBox')) {
+        el('filePreviewBox').classList.remove('hidden');
+        el('filePreviewBox').innerHTML = `<span><i class="fa-solid fa-paperclip mr-1"></i>Lampiran tersimpan: ${escapeHtml(item.fileName)}</span>`;
+      }
+
+      if (el('formTitle')) el('formTitle').innerHTML = `<i class="fa-solid fa-pen-to-square text-amber-600"></i> Edit Aktivitas Jurnal`;
+      if (el('btnCancelEdit')) el('btnCancelEdit').classList.remove('hidden');
+      if (el('btnSubmitJurnal')) {
+        el('btnSubmitJurnal').innerHTML = `<i class="fa-solid fa-check"></i> Simpan Perubahan Aktivitas`;
+        el('btnSubmitJurnal').classList.replace('bg-teal-700', 'bg-amber-400');
+        el('btnSubmitJurnal').classList.replace('hover:bg-teal-800', 'hover:bg-amber-500');
+        el('btnSubmitJurnal').classList.replace('text-white', 'text-slate-950');
+      }
+      if (el('formCardContainer')) el('formCardContainer').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function copyJurnalToForm(id) {
+      const item = appData.jurnal.find(j => j.id === id);
+      if (!item) return;
+
+      if (el('editJurnalId')) el('editJurnalId').value = '';
+      const activeDate = (el('inputTanggal') && el('inputTanggal').value) ? el('inputTanggal').value : getTodayISO();
+      if (el('inputTanggal')) el('inputTanggal').value = activeDate;
+      if (el('inputJamMulai')) el('inputJamMulai').value = item.jamMulai;
+      if (el('inputJamSelesai')) el('inputJamSelesai').value = item.jamSelesai;
+      updateDurationIndicator();
+
+      if (el('inputKategori')) {
+        el('inputKategori').value = item.kategori;
+        onKategoriChange();
+      }
+
+      if (item.kategori === 'Pencairan Kontrak') {
+        updateKontrakDropdowns();
+        if (el('inputKontrakId')) el('inputKontrakId').value = item.kontrakId || '';
+        if (el('inputStatusKontrak')) el('inputStatusKontrak').value = item.statusKontrak || 'Verifikasi Berkas / SPJ';
+      }
+
+      if (el('inputSkp')) el('inputSkp').value = item.skp;
+      if (el('inputUraian')) el('inputUraian').value = item.uraian;
+      if (el('inputVolume')) el('inputVolume').value = item.volume;
+      if (el('inputSatuan')) el('inputSatuan').value = item.satuan;
+      if (el('inputBukti')) el('inputBukti').value = item.bukti || '';
+      clearSelectedFile();
+
+      if (el('formTitle')) el('formTitle').innerHTML = `<i class="fa-solid fa-copy text-blue-600"></i> Salin Aktivitas (Mode Tambah Baru)`;
+      if (el('btnCancelEdit')) el('btnCancelEdit').classList.remove('hidden');
+      if (el('formCardContainer')) el('formCardContainer').scrollIntoView({ behavior: 'smooth' });
+      showToast('Aktivitas disalin ke form! Sesuaikan jam/tanggal lalu simpan.');
+    }
+
+    function resetJurnalForm() {
+      if (el('editJurnalId')) el('editJurnalId').value = '';
+      if (el('inputUraian')) el('inputUraian').value = '';
+      if (el('inputTemplate')) el('inputTemplate').value = '';
+      if (el('inputVolume')) el('inputVolume').value = 1;
+      if (el('inputBukti')) el('inputBukti').value = '';
+      if (el('inputKontrakId')) el('inputKontrakId').value = '';
+      clearSelectedFile();
+
+      if (el('formTitle')) el('formTitle').innerHTML = `<i class="fa-solid fa-pen-to-square text-teal-700"></i> Catat Aktivitas Baru`;
+      if (el('btnCancelEdit')) el('btnCancelEdit').classList.add('hidden');
+      if (el('btnSubmitJurnal')) {
+        el('btnSubmitJurnal').innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Simpan Aktivitas Jurnal`;
+        el('btnSubmitJurnal').classList.remove('bg-amber-400', 'hover:bg-amber-500', 'text-slate-950');
+        el('btnSubmitJurnal').classList.add('bg-teal-700', 'hover:bg-teal-800', 'text-white');
+      }
+    }
+
+    function deleteEntry(id) {
+      appData.jurnal = appData.jurnal.filter(j => j.id !== id);
+      if (el('editJurnalId') && el('editJurnalId').value === id) resetJurnalForm();
+      saveAllLocal();
+      renderAllViews();
+      onTanggalChange();
+      showToast('Aktivitas dihapus dari jurnal.', 'warning');
+    }
+
+    function openCopyDayModal(sourceDate) {
+      if (el('copySourceDate')) el('copySourceDate').value = sourceDate;
+      if (el('copySourceLabel')) el('copySourceLabel').innerText = formatIndoDate(sourceDate);
+      if (el('copyTargetDate')) el('copyTargetDate').value = getTodayISO();
+      if (el('modalCopyDay')) el('modalCopyDay').classList.remove('hidden');
+    }
+
+    function closeCopyDayModal() {
+      if (el('modalCopyDay')) el('modalCopyDay').classList.add('hidden');
+    }
+
+    function executeCopyDay(e) {
+      e.preventDefault();
+      const srcDate = el('copySourceDate').value;
+      const dstDate = el('copyTargetDate').value;
+      const adjustApel = el('copyAdjustApel') ? el('copyAdjustApel').checked : true;
+
+      if (!srcDate || !dstDate) return;
+      const sourceItems = appData.jurnal.filter(j => j.tanggal === srcDate);
+      if (sourceItems.length === 0) {
+        closeCopyDayModal();
+        return;
+      }
+
+      const dTarget = new Date(dstDate + 'T00:00:00');
+      const targetDay = isNaN(dTarget.getTime()) ? 1 : dTarget.getDay();
+      const isTargetFri = (targetDay === 5);
+
+      const nowBase = Date.now();
+      const cloned = sourceItems.map((it, idx) => {
+        const copyObj = {
+          ...it,
+          id: `JRN-${nowBase}-${idx + 1}`,
+          tanggal: dstDate
+        };
+
+        if (adjustApel && isTargetFri && it.kategori === 'Apel / Kedisiplinan' && it.jamMulai === '16:45') {
+          copyObj.kategori = 'Operator';
+          copyObj.skp = SKP_LIST[2];
+          copyObj.uraian = 'Melakukan pencadangan (backup) file pekerjaan harian dan pengarsipan dokumen layanan teknis.';
+          copyObj.satuan = 'Arsip';
+          copyObj.bukti = 'Folder Arsip Digital';
+        }
+        return copyObj;
+      });
+
+      appData.jurnal = [...cloned, ...appData.jurnal];
+      saveAllLocal();
+      closeCopyDayModal();
+      selectedCalDateStr = dstDate;
+      if (el('filterBulan')) el('filterBulan').value = dstDate.slice(0, 7);
+      if (el('inputTanggal')) el('inputTanggal').value = dstDate;
+      renderAllViews();
+      onTanggalChange();
+      showToast(`${cloned.length} aktivitas berhasil disalin ke ${formatIndoDate(dstDate)}!`);
+    }
+
+    function onFilterBulanChange() {
+      const b = el('filterBulan') ? el('filterBulan').value : '';
+      if (el('rekapBulanInput') && b) el('rekapBulanInput').value = b;
+      renderJurnalList();
+      renderRekapBulanan();
+    }
+
+    function renderJurnalList() {
+      const bulan = el('filterBulan') ? el('filterBulan').value : '';
+      const kat = el('filterKategori') ? el('filterKategori').value : 'ALL';
+      const keyword = el('filterKeyword') ? el('filterKeyword').value.trim().toLowerCase() : '';
+
+      const allKontrak = appData.kontrak;
+      const totalNilaiKontrak = allKontrak.reduce((sum, k) => sum + (Number(k.nilai) || 0), 0);
+      if (el('kontrakTotalBadge')) el('kontrakTotalBadge').innerText = `${allKontrak.length} Kontrak Terdaftar • Total ${formatRupiah(totalNilaiKontrak)}`;
+      if (el('trkVerifikasi')) el('trkVerifikasi').innerText = allKontrak.filter(k => k.status === 'Verifikasi Berkas / SPJ').length;
+      if (el('trkPpk')) el('trkPpk').innerText = allKontrak.filter(k => k.status === 'Persetujuan PPK').length;
+      if (el('trkSpp')) el('trkSpp').innerText = allKontrak.filter(k => k.status === 'Pengajuan SPP / SPM').length;
+      if (el('trkSp2d')) el('trkSp2d').innerText = allKontrak.filter(k => k.status === 'Terbit SP2D / Selesai').length;
+
+      const miniKontrakEl = el('miniKontrakList');
+      if (miniKontrakEl) {
+        if (allKontrak.length === 0) {
+          miniKontrakEl.innerHTML = `<div class="text-xs text-slate-500 bg-slate-50 border border-dashed border-slate-300 rounded-xl p-2.5 text-center">Belum ada kontrak diinput. Klik tombol <strong>+ Input Kontrak</strong> untuk mendaftarkan kontrak.</div>`;
+        } else {
+          miniKontrakEl.innerHTML = allKontrak.slice(0, 3).map(k => `
+            <div class="bg-slate-50/90 border border-slate-200 rounded-xl p-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+              <div class="min-w-0">
+                <div class="font-bold text-slate-800 truncate">${escapeHtml(k.namaPaket)}</div>
+                <div class="text-[11px] text-slate-500 truncate">${escapeHtml(k.nomor)} • ${escapeHtml(k.penyedia)} • <span class="font-bold text-teal-800">${formatRupiah(k.nilai)}</span></div>
+              </div>
+              <div class="flex items-center gap-1.5 shrink-0">
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-amber-100 text-amber-900 border border-amber-200">${getContractPercent(k.status)}% • ${escapeHtml(k.status)}</span>
+                <button type="button" onclick="catatJurnalUntukKontrak('${escapeHtml(k.id)}')" class="text-[11px] bg-teal-700 hover:bg-teal-800 text-white font-bold px-2.5 py-1 rounded-lg cursor-pointer">+ Jurnal</button>
+              </div>
+            </div>
+          `).join('');
+        }
+      }
+
+      const monthItems = appData.jurnal.filter(item => !bulan || (item.tanggal && item.tanggal.startsWith(bulan)));
+      const monthMins = monthItems.reduce((sum, x) => sum + calculateEffectiveMinutes(x.jamMulai, x.jamSelesai), 0);
+      if (el('statTotal')) el('statTotal').innerText = monthItems.length;
+      if (el('statJamBulan')) el('statJamBulan').innerText = `${(monthMins / 60).toFixed(2)} Jam Efektif`;
+      if (el('statOperator')) el('statOperator').innerText = monthItems.filter(i => i.kategori === 'Operator').length;
+      if (el('statStatistik')) el('statStatistik').innerText = monthItems.filter(i => i.kategori === 'Statistik Ternak').length;
+      if (el('statKontrak')) el('statKontrak').innerText = monthItems.filter(i => i.kategori === 'Pencairan Kontrak').length;
+      if (el('statApel')) el('statApel').innerText = monthItems.filter(i => i.kategori === 'Apel / Kedisiplinan').length;
+
+      const filtered = monthItems.filter(item => {
+        const matchKat = kat === 'ALL' || item.kategori === kat;
+        const matchKw = !keyword ||
+          (item.uraian || '').toLowerCase().includes(keyword) ||
+          (item.namaKontrak || '').toLowerCase().includes(keyword) ||
+          (item.bukti || '').toLowerCase().includes(keyword);
+        return matchKat && matchKw;
+      });
+
+      if (el('jumlahHasilFilter')) el('jumlahHasilFilter').innerText = `${filtered.length} aktivitas ditampilkan`;
+
+      const grouped = {};
+      filtered.forEach(item => {
+        if (!grouped[item.tanggal]) grouped[item.tanggal] = [];
+        grouped[item.tanggal].push(item);
+      });
+
+      const container = el('jurnalListContainer');
+      if (!container) return;
+      const dates = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
+
+      if (dates.length === 0) {
+        container.innerHTML = `<div class="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-500 text-xs sm:text-sm">Belum ada catatan jurnal pada periode/filter ini. Gunakan form di sebelah kiri atau klik <strong>Generate 7 Aktivitas Otomatis</strong>.</div>`;
+        return;
+      }
+
+      container.innerHTML = dates.map(tgl => {
+        const items = grouped[tgl].sort((a, b) => (a.jamMulai || '').localeCompare(b.jamMulai || ''));
+        const isLengkap = items.length >= 7;
+        const dayEffMins = items.reduce((s, x) => s + calculateEffectiveMinutes(x.jamMulai, x.jamSelesai), 0);
+        const badgeHtml = isLengkap
+          ? `<span class="bg-emerald-100 text-emerald-800 text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-emerald-200">Lengkap (${items.length}/7) • ${(dayEffMins / 60).toFixed(2)}j</span>`
+          : `<span class="bg-rose-100 text-rose-800 text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-rose-200">Kurang (${items.length}/7) • ${(dayEffMins / 60).toFixed(2)}j</span>`;
+
+        const rowsHtml = items.map(it => {
+          const effMins = calculateEffectiveMinutes(it.jamMulai, it.jamSelesai);
+          return `
+            <div class="p-3.5 border-t border-slate-100 flex items-start justify-between gap-3 hover:bg-slate-50/80 transition">
+              <div class="space-y-1 min-w-0">
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <span class="text-[11px] font-bold text-teal-950 bg-teal-50 px-2 py-0.5 rounded-lg border border-teal-200">${escapeHtml(it.jamMulai)} - ${escapeHtml(it.jamSelesai)} WITA (${(effMins / 60).toFixed(2)}j)</span>
+                  <span class="text-[11px] font-bold px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700">${escapeHtml(it.kategori)}</span>
+                  ${it.statusKontrak ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-amber-100 text-amber-900 border border-amber-200">${escapeHtml(it.statusKontrak)}</span>` : ''}
+                  <span class="text-[11px] text-slate-500 font-semibold">${escapeHtml(it.volume)} ${escapeHtml(it.satuan)}</span>
+                </div>
+                <p class="text-xs sm:text-sm text-slate-800 font-medium leading-relaxed">${escapeHtml(it.uraian)}</p>
+                ${it.namaKontrak ? `<p class="text-[11px] text-amber-800 font-semibold"><i class="fa-solid fa-file-contract mr-1"></i>Kontrak: ${escapeHtml(it.namaKontrak)}</p>` : ''}
+                <p class="text-[11px] text-slate-500"><i class="fa-solid fa-bullseye text-teal-700 mr-1"></i>SKP: ${escapeHtml(it.skp)}</p>
+                <div class="flex flex-wrap items-center gap-3 text-[11px]">
+                  ${it.bukti ? `<span class="text-blue-700 font-medium"><i class="fa-solid fa-check-circle mr-1"></i>Bukti: ${escapeHtml(it.bukti)}</span>` : ''}
+                  ${it.fileName ? `<span class="text-teal-800 font-semibold bg-teal-50 px-2 py-0.5 rounded border border-teal-200"><i class="fa-solid fa-paperclip mr-1"></i>${escapeHtml(it.fileName)}</span>` : ''}
+                </div>
+              </div>
+              <div class="flex items-center gap-1 shrink-0">
+                <button type="button" onclick="copyJurnalToForm('${escapeHtml(it.id)}')" class="p-1.5 rounded-lg text-blue-600 hover:bg-blue-50 transition cursor-pointer" title="Salin Aktivitas">
+                  <i class="fa-solid fa-copy"></i>
+                </button>
+                <button type="button" onclick="startEditJurnal('${escapeHtml(it.id)}')" class="p-1.5 rounded-lg text-amber-600 hover:bg-amber-50 transition cursor-pointer" title="Edit Aktivitas">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+                <button type="button" onclick="deleteEntry('${escapeHtml(it.id)}')" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer" title="Hapus Aktivitas">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        return `
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="bg-slate-50 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2">
+              <div class="font-bold text-xs sm:text-sm text-slate-800 flex items-center gap-1.5">
+                <i class="fa-regular fa-calendar text-teal-700"></i> ${formatIndoDate(tgl)}
+              </div>
+              <div class="flex items-center gap-2">
+                ${badgeHtml}
+                <button type="button" onclick="openCopyDayModal('${escapeHtml(tgl)}')" class="text-[11px] bg-white hover:bg-blue-50 text-blue-700 font-bold px-2.5 py-1 rounded-lg border border-slate-200 transition cursor-pointer">
+                  <i class="fa-solid fa-copy mr-1"></i>Salin Hari Ini
+                </button>
+              </div>
+            </div>
+            <div>${rowsHtml}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ================= KALENDER AKTIVITAS =================
+    function renderCalendar() {
+      const grid = el('calendarGrid');
+      if (!grid) return;
+
+      const year = currentCalDate.getFullYear();
+      const month = currentCalDate.getMonth();
+      const monthNames = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+      if (el('calMonthLabel')) el('calMonthLabel').innerText = `${monthNames[month]} ${year}`;
+
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      grid.innerHTML = '';
+
+      for (let i = 0; i < firstDay; i++) {
+        grid.innerHTML += `<div class="h-16 bg-slate-50/60 rounded-xl"></div>`;
+      }
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const dayOfWeek = new Date(year, month, d).getDay();
+        const count = appData.jurnal.filter(j => j.tanggal === dateStr).length;
+        const isSelected = selectedCalDateStr === dateStr;
+
+        let bgClass = 'bg-white border-slate-200';
+        if (dayOfWeek === 0 || dayOfWeek === 6) {
+          bgClass = 'bg-slate-100 text-slate-400 border-slate-200';
+        } else if (count >= 7) {
+          bgClass = 'bg-emerald-50 border-emerald-400 text-emerald-950';
+        } else if (count > 0) {
+          bgClass = 'bg-amber-50 border-amber-400 text-amber-950';
+        } else {
+          bgClass = 'bg-rose-50/70 border-rose-200 text-rose-900';
+        }
+
+        const ringClass = isSelected ? 'ring-2 ring-teal-700 ring-offset-1' : '';
+
+        grid.innerHTML += `
+          <div onclick="selectCalDate('${dateStr}')" class="h-16 p-1.5 border rounded-xl cursor-pointer hover:shadow-sm transition flex flex-col justify-between ${bgClass} ${ringClass}">
+            <span class="text-xs font-extrabold">${d}</span>
+            <span class="text-[10px] font-bold">${count > 0 ? count + '/7 Akt' : (dayOfWeek === 0 || dayOfWeek === 6 ? 'Libur' : 'Kosong')}</span>
+          </div>
+        `;
+      }
+    }
+
+    function changeCalMonth(delta) {
+      currentCalDate.setMonth(currentCalDate.getMonth() + delta);
+      renderCalendar();
+    }
+
+    function selectCalDate(dateStr) {
+      selectedCalDateStr = dateStr;
+      renderCalendar();
+      renderCalDetailPanel(dateStr);
+    }
+
+    function renderCalDetailPanel(dateStr) {
+      const target = dateStr || getTodayISO();
+      const items = appData.jurnal
+        .filter(j => j.tanggal === target)
+        .sort((a, b) => (a.jamMulai || '').localeCompare(b.jamMulai || ''));
+      const dayMins = items.reduce((s, x) => s + calculateEffectiveMinutes(x.jamMulai, x.jamSelesai), 0);
+
+      if (el('calDetailDateTitle')) el('calDetailDateTitle').innerText = formatIndoDate(target);
+      if (el('calDetailBadge')) {
+        el('calDetailBadge').innerText = `${items.length} / 7 • ${(dayMins / 60).toFixed(2)}j`;
+        el('calDetailBadge').className = items.length >= 7
+          ? 'text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800'
+          : 'text-[11px] font-bold px-2.5 py-1 rounded-full bg-rose-100 text-rose-800';
+      }
+      if (el('calDetailStatusSub')) {
+        el('calDetailStatusSub').innerText = items.length >= 7
+          ? `Target wajib ≥ 7 aktivitas terpenuhi (${formatMinutesLabel(dayMins)}).`
+          : `Kurang ${7 - items.length} aktivitas • Durasi efektif: ${formatMinutesLabel(dayMins)}.`;
+      }
+
+      const listEl = el('calDetailList');
+      if (!listEl) return;
+      if (items.length === 0) {
+        listEl.innerHTML = `<div class="bg-slate-50 border border-dashed border-slate-300 rounded-xl p-5 text-center text-xs text-slate-500">Belum ada aktivitas tercatat pada tanggal ini.</div>`;
+        return;
+      }
+
+      listEl.innerHTML = items.map(it => `
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-1">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-[11px] font-bold text-teal-900">${escapeHtml(it.jamMulai)} - ${escapeHtml(it.jamSelesai)} WITA</span>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-700">${escapeHtml(it.kategori)}</span>
+          </div>
+          <p class="text-xs font-medium text-slate-800">${escapeHtml(it.uraian)}</p>
+          <p class="text-[10px] text-slate-500">Output: ${escapeHtml(it.volume)} ${escapeHtml(it.satuan)}</p>
+        </div>
+      `).join('');
+    }
+
+    function generate7ForSelectedCalDate() {
+      const target = selectedCalDateStr || getTodayISO();
+      generate7AktivitasForDate(target);
+    }
+
+    function addNewOnSelectedCalDate() {
+      const target = selectedCalDateStr || getTodayISO();
+      if (el('inputTanggal')) el('inputTanggal').value = target;
+      if (el('filterBulan')) el('filterBulan').value = target.slice(0, 7);
+      onTanggalChange();
+      renderJurnalList();
+      switchTab('jurnal');
+      if (el('formCardContainer')) el('formCardContainer').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // ================= KELOLA TEMPLATE =================
+    function handleSaveTemplate(e) {
+      e.preventDefault();
+      const editId = el('editTplId') ? el('editTplId').value : '';
+      const obj = {
+        id: editId || ('TPL-' + Date.now()),
+        kategori: el('tplKategori').value,
+        text: el('tplUraian').value.trim(),
+        skp: el('tplSkp').value,
+        volume: Number(el('tplVolume').value) || 1,
+        satuan: el('tplSatuan').value.trim() || 'Dokumen'
+      };
+
+      if (editId) {
+        const idx = appData.templates.findIndex(t => t.id === editId);
+        if (idx !== -1) appData.templates[idx] = obj;
+        showToast('Template berhasil diperbarui!');
+      } else {
+        appData.templates.unshift(obj);
+        showToast('Template baru berhasil ditambahkan!');
+      }
+
+      saveAllLocal();
+      resetTemplateForm();
+      onKategoriChange();
+      renderTemplateManager();
+    }
+
+    function startEditTemplate(id) {
+      const tpl = appData.templates.find(t => t.id === id);
+      if (!tpl) return;
+      if (el('editTplId')) el('editTplId').value = tpl.id;
+      if (el('tplKategori')) el('tplKategori').value = tpl.kategori;
+      if (el('tplUraian')) el('tplUraian').value = tpl.text;
+      if (el('tplSkp')) el('tplSkp').value = tpl.skp;
+      if (el('tplVolume')) el('tplVolume').value = tpl.volume || 1;
+      if (el('tplSatuan')) el('tplSatuan').value = tpl.satuan;
+
+      if (el('tplFormTitle')) el('tplFormTitle').innerHTML = `<i class="fa-solid fa-pen-to-square text-amber-600"></i> Edit Template Aktivitas`;
+      if (el('btnCancelEditTpl')) el('btnCancelEditTpl').classList.remove('hidden');
+      if (el('btnSubmitTpl')) el('btnSubmitTpl').innerText = 'Simpan Perubahan Template';
+    }
+
+    function resetTemplateForm() {
+      if (el('editTplId')) el('editTplId').value = '';
+      if (el('tplUraian')) el('tplUraian').value = '';
+      if (el('tplVolume')) el('tplVolume').value = 1;
+      if (el('tplSatuan')) el('tplSatuan').value = 'Dokumen';
+      if (el('tplFormTitle')) el('tplFormTitle').innerHTML = `<i class="fa-solid fa-layer-group text-teal-700"></i> Tambah Template Aktivitas`;
+      if (el('btnCancelEditTpl')) el('btnCancelEditTpl').classList.add('hidden');
+      if (el('btnSubmitTpl')) el('btnSubmitTpl').innerText = 'Simpan Template';
+    }
+
+    function deleteTemplate(id) {
+      appData.templates = appData.templates.filter(t => t.id !== id);
+      if (el('editTplId') && el('editTplId').value === id) resetTemplateForm();
+      saveAllLocal();
+      onKategoriChange();
+      renderTemplateManager();
+      showToast('Template dihapus.', 'warning');
+    }
+
+    function resetDefaultTemplates() {
+      appData.templates = JSON.parse(JSON.stringify(DEFAULT_TEMPLATES));
+      saveAllLocal();
+      resetTemplateForm();
+      onKategoriChange();
+      renderTemplateManager();
+      showToast('Daftar template dikembalikan ke bawaan.');
+    }
+
+    function renderTemplateManager() {
+      if (el('badgeJumlahTemplate')) el('badgeJumlahTemplate').innerText = appData.templates.length;
+      const container = el('templateManagerList');
+      if (!container) return;
+
+      const filterKat = el('filterTplKategori') ? el('filterTplKategori').value : 'ALL';
+      const list = appData.templates.filter(t => filterKat === 'ALL' || t.kategori === filterKat);
+
+      if (list.length === 0) {
+        container.innerHTML = `<div class="bg-white p-6 rounded-2xl border border-slate-200 text-center text-xs text-slate-500">Belum ada template pada kategori ini.</div>`;
+        return;
+      }
+
+      container.innerHTML = list.map(t => `
+        <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex items-start justify-between gap-3">
+          <div class="space-y-1">
+            <div class="flex flex-wrap items-center gap-1.5">
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded-lg bg-teal-50 text-teal-900 border border-teal-200">${escapeHtml(t.kategori)}</span>
+              <span class="text-[11px] text-slate-500 font-semibold">Default: ${escapeHtml(t.volume || 1)} ${escapeHtml(t.satuan)}</span>
+            </div>
+            <p class="text-xs sm:text-sm font-medium text-slate-800">${escapeHtml(t.text)}</p>
+            <p class="text-[11px] text-slate-500">SKP: ${escapeHtml(t.skp)}</p>
+          </div>
+          <div class="flex items-center gap-1 shrink-0">
+            <button type="button" onclick="startEditTemplate('${escapeHtml(t.id)}')" class="p-1.5 rounded-lg text-amber-600 hover:bg-amber-50 cursor-pointer" title="Edit Template">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </button>
+            <button type="button" onclick="deleteTemplate('${escapeHtml(t.id)}')" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 cursor-pointer" title="Hapus Template">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // ================= REKAP & KEPATUHAN BULANAN =================
+    function renderRekapBulanan() {
+      const bulan = (el('rekapBulanInput') && el('rekapBulanInput').value) ? el('rekapBulanInput').value : getTodayISO().slice(0, 7);
+      const items = appData.jurnal.filter(i => i.tanggal && i.tanggal.startsWith(bulan));
+
+      const byDate = {};
+      items.forEach(it => {
+        if (!byDate[it.tanggal]) byDate[it.tanggal] = [];
+        byDate[it.tanggal].push(it);
+      });
+
+      const activeDates = Object.keys(byDate);
+      const lengkapCount = activeDates.filter(d => byDate[d].length >= 7).length;
+      const persenTarget7 = activeDates.length > 0 ? Math.round((lengkapCount / activeDates.length) * 100) : 0;
+
+      if (el('rekapHariKerjaTerisi')) el('rekapHariKerjaTerisi').innerText = `${activeDates.length} Hari`;
+      if (el('rekapTotalItem')) el('rekapTotalItem').innerText = `Total ${items.length} aktivitas tercatat`;
+      if (el('rekapPersenTarget7')) el('rekapPersenTarget7').innerText = `${persenTarget7}%`;
+      if (el('rekapHariLengkap')) el('rekapHariLengkap').innerText = `${lengkapCount} dari ${activeDates.length} hari kerja lengkap`;
+
+      let wajibApelSesi = 0;
+      let terpenuhiApelSesi = 0;
+      activeDates.forEach(dStr => {
+        const dt = new Date(dStr + 'T00:00:00');
+        const day = isNaN(dt.getTime()) ? 0 : dt.getDay();
+        if (day >= 1 && day <= 4) {
+          wajibApelSesi += 2;
+          const dayItems = byDate[dStr];
+          const hasPagi = dayItems.some(x => x.kategori === 'Apel / Kedisiplinan' && ((x.jamMulai || '') <= '08:15' || (x.uraian || '').toLowerCase().includes('apel pagi')));
+          const hasSore = dayItems.some(x => x.kategori === 'Apel / Kedisiplinan' && ((x.jamMulai || '') >= '16:30' || (x.uraian || '').toLowerCase().includes('apel sore')));
+          if (hasPagi) terpenuhiApelSesi += 1;
+          if (hasSore) terpenuhiApelSesi += 1;
+        }
+      });
+
+      const persenApel = wajibApelSesi > 0 ? Math.round((terpenuhiApelSesi / wajibApelSesi) * 100) : 100;
+      if (el('rekapPersenApel')) el('rekapPersenApel').innerText = `${persenApel}%`;
+      if (el('rekapDetailApel')) el('rekapDetailApel').innerText = `${terpenuhiApelSesi} dari ${wajibApelSesi} sesi apel wajib`;
+
+      const totalMins = items.reduce((acc, x) => acc + calculateEffectiveMinutes(x.jamMulai, x.jamSelesai), 0);
+      const totalVol = items.reduce((acc, x) => acc + (Number(x.volume) || 0), 0);
+      if (el('rekapTotalJamKerja')) el('rekapTotalJamKerja').innerText = `${(totalMins / 60).toFixed(2)} Jam`;
+      if (el('rekapTotalVolume')) el('rekapTotalVolume').innerText = `${formatMinutesLabel(totalMins)} • ${totalVol} output`;
+
+      const katList = [
+        { name: 'Operator', color: 'bg-blue-600' },
+        { name: 'Statistik Ternak', color: 'bg-purple-600' },
+        { name: 'Pencairan Kontrak', color: 'bg-amber-500' },
+        { name: 'Apel / Kedisiplinan', color: 'bg-teal-600' }
+      ];
+      if (el('rekapKategoriBars')) {
+        el('rekapKategoriBars').innerHTML = katList.map(k => {
+          const katItems = items.filter(i => i.kategori === k.name);
+          const cnt = katItems.length;
+          const katJam = (katItems.reduce((s, x) => s + calculateEffectiveMinutes(x.jamMulai, x.jamSelesai), 0) / 60).toFixed(2);
+          const pct = items.length > 0 ? Math.round((cnt / items.length) * 100) : 0;
+          return `
+            <div>
+              <div class="flex justify-between text-xs font-bold mb-1">
+                <span>${escapeHtml(k.name)}</span>
+                <span>${cnt} akt (${pct}%) • ${katJam}j</span>
+              </div>
+              <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                <div class="h-full ${k.color} rounded-full" style="width: ${pct}%"></div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      if (el('rekapSkpBars')) {
+        el('rekapSkpBars').innerHTML = SKP_LIST.map((skpName, idx) => {
+          const cnt = items.filter(i => i.skp === skpName).length;
+          const pct = items.length > 0 ? Math.round((cnt / items.length) * 100) : 0;
+          return `
+            <div>
+              <div class="flex justify-between text-[11px] font-semibold mb-1 gap-2">
+                <span class="truncate">Butir ${idx + 1}: ${escapeHtml(skpName.slice(3))}</span>
+                <span class="shrink-0 font-bold">${cnt} (${pct}%)</span>
+              </div>
+              <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                <div class="h-full bg-teal-600 rounded-full" style="width: ${pct}%"></div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      const p = appData.profil || DEFAULT_PROFIL;
+      if (el('rekapTtdAtasanJabatan')) el('rekapTtdAtasanJabatan').innerText = p.atasanJabatan || DEFAULT_PROFIL.atasanJabatan;
+      if (el('rekapTtdAtasanNama')) el('rekapTtdAtasanNama').innerText = p.atasanNama || DEFAULT_PROFIL.atasanNama;
+      if (el('rekapTtdAtasanNip')) el('rekapTtdAtasanNip').innerText = 'NIP. ' + (p.atasanNip || DEFAULT_PROFIL.atasanNip);
+      if (el('rekapTtdTempat')) el('rekapTtdTempat').innerText = p.tempatCetak || DEFAULT_PROFIL.tempatCetak;
+      if (el('rekapTtdTanggal')) el('rekapTtdTanggal').innerText = formatIndoDate(getTodayISO());
+      if (el('rekapTtdNama')) el('rekapTtdNama').innerText = p.nama || DEFAULT_PROFIL.nama;
+      if (el('rekapTtdNip')) el('rekapTtdNip').innerText = 'NIP. ' + (p.nip || DEFAULT_PROFIL.nip);
+    }
+
+    // ================= NAVIGASI TAB =================
+    function switchTab(tab) {
+      ['jurnal', 'kontrak', 'kalender', 'template', 'rekap', 'profil'].forEach(t => {
+        const viewEl = el('view-' + t);
+        const btnEl = el('tab-' + t);
+        if (viewEl) viewEl.classList.toggle('hidden', t !== tab);
+        if (btnEl) {
+          if (t === tab) {
+            btnEl.classList.add('border-amber-400', 'text-white', 'font-bold');
+            btnEl.classList.remove('border-transparent', 'text-teal-100');
+          } else {
+            btnEl.classList.remove('border-amber-400', 'text-white', 'font-bold');
+            btnEl.classList.add('border-transparent', 'text-teal-100');
+          }
+        }
+      });
+
+      if (tab === 'rekap') renderRekapBulanan();
+      if (tab === 'kalender') {
+        renderCalendar();
+        renderCalDetailPanel(selectedCalDateStr || getTodayISO());
+      }
+    }
+
+    // ================= CETAK, PDF, WORD (.DOC) & CSV =================
+    function populateOfficialReportData() {
+      const p = appData.profil || DEFAULT_PROFIL;
+      const bulan = el('filterBulan') ? el('filterBulan').value : '';
+      const items = appData.jurnal
+        .filter(i => !bulan || (i.tanggal && i.tanggal.startsWith(bulan)))
+        .sort((a, b) => ((a.tanggal || '') + (a.jamMulai || '')).localeCompare((b.tanggal || '') + (b.jamMulai || '')));
+
+      if (el('printInstansi')) el('printInstansi').innerText = (p.instansi || DEFAULT_PROFIL.instansi).toUpperCase();
+      if (el('printUnit')) el('printUnit').innerText = p.unit || DEFAULT_PROFIL.unit;
+      if (el('printPeriode')) el('printPeriode').innerText = 'Periode Bulan: ' + (bulan || 'Semua Periode');
+      if (el('printNama')) el('printNama').innerText = p.nama;
+      if (el('printNip')) el('printNip').innerText = p.nip;
+      if (el('printJabatan')) el('printJabatan').innerText = p.jabatan;
+      if (el('printAtasanNama')) el('printAtasanNama').innerText = p.atasanNama;
+      if (el('printAtasanNip')) el('printAtasanNip').innerText = p.atasanNip;
+      if (el('printAtasanJabatan')) el('printAtasanJabatan').innerText = p.atasanJabatan;
+
+      if (el('printTtdAtasanJabatan')) el('printTtdAtasanJabatan').innerText = p.atasanJabatan;
+      if (el('printTtdAtasanNama')) el('printTtdAtasanNama').innerText = p.atasanNama;
+      if (el('printTtdAtasanNip')) el('printTtdAtasanNip').innerText = 'NIP. ' + p.atasanNip;
+      if (el('printTtdTempat')) el('printTtdTempat').innerText = p.tempatCetak || 'Rantau';
+      if (el('printTtdTanggal')) el('printTtdTanggal').innerText = formatIndoDate(getTodayISO());
+      if (el('printTtdNama')) el('printTtdNama').innerText = p.nama;
+      if (el('printTtdNip')) el('printTtdNip').innerText = 'NIP. ' + p.nip;
+
+      if (el('printTableBody')) {
+        el('printTableBody').innerHTML = items.length === 0
+          ? `<tr><td colspan="6" class="border border-black px-2 py-3 text-center">Belum ada aktivitas pada periode ini.</td></tr>`
+          : items.map((it, idx) => {
+              const effJam = (calculateEffectiveMinutes(it.jamMulai, it.jamSelesai) / 60).toFixed(2);
+              return `
+                <tr>
+                  <td class="border border-black px-1.5 py-1 text-center">${idx + 1}</td>
+                  <td class="border border-black px-1.5 py-1 text-center">${escapeHtml(it.tanggal)}</td>
+                  <td class="border border-black px-1.5 py-1 text-center">${escapeHtml(it.jamMulai)} - ${escapeHtml(it.jamSelesai)}<br>(${effJam}j)</td>
+                  <td class="border border-black px-1.5 py-1">${escapeHtml(it.kategori)}</td>
+                  <td class="border border-black px-1.5 py-1"><strong>${escapeHtml(it.uraian)}</strong>${it.namaKontrak ? `<br><span>Kontrak: ${escapeHtml(it.namaKontrak)} (${escapeHtml(it.statusKontrak)})</span>` : ''}<br><em>SKP: ${escapeHtml(it.skp)}</em></td>
+                  <td class="border border-black px-1.5 py-1 text-center">${escapeHtml(it.volume)} ${escapeHtml(it.satuan)}</td>
+                </tr>
+              `;
+            }).join('');
+      }
+
+      return { p, bulan, items };
+    }
+
+    function openPrintPreview() {
+      populateOfficialReportData();
+      window.print();
+    }
+
+    function downloadPDF() {
+      try {
+        const { p, bulan } = populateOfficialReportData();
+        const sourceEl = el('officialReportArea');
+        if (!sourceEl) return;
+
+        if (typeof html2pdf === 'undefined') {
+          showToast('Library PDF belum siap, gunakan tombol Cetak Laporan -> Simpan PDF.', 'warning');
+          return;
+        }
+
+        showToast('Menyiapkan file PDF resmi A4...');
+
+        const wrapper = document.createElement('div');
+        wrapper.style.position = 'fixed';
+        wrapper.style.left = '-9999px';
+        wrapper.style.top = '0';
+        wrapper.style.width = '794px';
+        wrapper.style.background = '#ffffff';
+        wrapper.style.color = '#000000';
+        wrapper.style.padding = '24px';
+
+        const clone = sourceEl.cloneNode(true);
+        clone.classList.remove('print-only');
+        clone.style.display = 'block';
+        wrapper.appendChild(clone);
+        document.body.appendChild(wrapper);
+
+        const safeNama = (p.nama || 'ASN_Tapin').replace(/[^a-zA-Z0-9]+/g, '_');
+        const safePeriode = (bulan || getTodayISO().slice(0, 7)).replace(/[^0-9-]+/g, '_');
+        const filename = `Laporan_Jurnal_ASN_${safeNama}_${safePeriode}.pdf`;
+
+        const opt = {
+          margin: [10, 10, 12, 10],
+          filename: filename,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+          pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+        };
+
+        html2pdf()
+          .set(opt)
+          .from(clone)
+          .save()
+          .then(() => {
+            if (wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
+            showToast('File PDF berhasil diunduh!');
+          })
+          .catch(err => {
+            if (wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
+            console.error('PDF error:', err);
+            showToast('Gagal membuat PDF. Gunakan tombol Cetak Laporan -> Simpan PDF.', 'error');
+          });
+      } catch (err) {
+        console.error('downloadPDF exception:', err);
+        showToast('Terjadi kendala saat membuat PDF.', 'error');
+      }
+    }
+
+    function downloadWord() {
+      try {
+        const { p, bulan, items } = populateOfficialReportData();
+        const tglCetak = formatIndoDate(getTodayISO());
+        const periodeLabel = bulan || 'Semua Periode';
+
+        const tableRowsHtml = items.length === 0
+          ? `<tr><td colspan="6" style="border:1px solid #000; padding:8px; text-align:center;">Belum ada aktivitas pada periode ini.</td></tr>`
+          : items.map((it, idx) => {
+              const effJam = (calculateEffectiveMinutes(it.jamMulai, it.jamSelesai) / 60).toFixed(2);
+              return `
+                <tr>
+                  <td style="border:1px solid #000; padding:5px; text-align:center; vertical-align:top;">${idx + 1}</td>
+                  <td style="border:1px solid #000; padding:5px; text-align:center; vertical-align:top;">${escapeHtml(it.tanggal)}</td>
+                  <td style="border:1px solid #000; padding:5px; text-align:center; vertical-align:top;">${escapeHtml(it.jamMulai)} - ${escapeHtml(it.jamSelesai)}<br><span style="font-size:9pt;">(${effJam} Jam)</span></td>
+                  <td style="border:1px solid #000; padding:5px; vertical-align:top;">${escapeHtml(it.kategori)}</td>
+                  <td style="border:1px solid #000; padding:5px; vertical-align:top;">
+                    <strong>${escapeHtml(it.uraian)}</strong>
+                    ${it.namaKontrak ? `<br><span style="font-size:9.5pt;">Kontrak: ${escapeHtml(it.namaKontrak)} (${escapeHtml(it.statusKontrak)})</span>` : ''}
+                    <br><em style="font-size:9.5pt;">SKP: ${escapeHtml(it.skp)}</em>
+                  </td>
+                  <td style="border:1px solid #000; padding:5px; text-align:center; vertical-align:top;">${escapeHtml(it.volume)} ${escapeHtml(it.satuan)}</td>
+                </tr>
+              `;
+            }).join('');
+
+        const wordHtml = `
+          <html xmlns:o="urn:schemas-microsoft-com:office:office"
+                xmlns:w="urn:schemas-microsoft-com:office:word"
+                xmlns="http://www.w3.org/TR/REC-html40">
+          <head>
+            <meta charset="utf-8">
+            <title>Laporan Jurnal Harian ASN</title>
+            <style>
+              @page Section1 {
+                size: 21.0cm 29.7cm;
+                margin: 1.5cm 1.5cm 1.5cm 1.5cm;
+                mso-header-margin: 35.4pt;
+                mso-footer-margin: 35.4pt;
+              }
+              div.Section1 { page: Section1; }
+              body { font-family: 'Times New Roman', Times, serif; font-size: 11pt; color: #000000; }
+              table { border-collapse: collapse; width: 100%; }
+            </style>
+          </head>
+          <body>
+            <div class="Section1">
+              <div style="text-align:center; border-bottom: 3px double #000000; padding-bottom: 8px; margin-bottom: 14px;">
+                <div style="font-size:12pt; font-weight:bold; text-transform:uppercase;">PEMERINTAH KABUPATEN TAPIN</div>
+                <div style="font-size:15pt; font-weight:bold; text-transform:uppercase;">${escapeHtml((p.instansi || DEFAULT_PROFIL.instansi).toUpperCase())}</div>
+                <div style="font-size:10pt;">${escapeHtml(p.unit || DEFAULT_PROFIL.unit)}</div>
+                <div style="font-size:9.5pt;">Alamat: Kawasan Perkantoran Rantau Baru, Kabupaten Tapin, Kalimantan Selatan</div>
+              </div>
+
+              <div style="text-align:center; margin-bottom: 14px;">
+                <div style="font-size:12pt; font-weight:bold; text-decoration:underline;">LAPORAN JURNAL HARIAN KINERJA ASN</div>
+                <div style="font-size:10.5pt;">Periode Bulan: ${escapeHtml(periodeLabel)}</div>
+              </div>
+
+              <table style="width:100%; font-size:10.5pt; margin-bottom:14px; border:none;">
+                <tr>
+                  <td style="width:18%; padding:2px 0; font-weight:bold;">Nama Pegawai</td>
+                  <td style="width:2%;">:</td>
+                  <td style="width:30%;">${escapeHtml(p.nama)}</td>
+                  <td style="width:18%; padding:2px 0; font-weight:bold;">Pejabat Penilai</td>
+                  <td style="width:2%;">:</td>
+                  <td style="width:30%;">${escapeHtml(p.atasanNama)}</td>
+                </tr>
+                <tr>
+                  <td style="padding:2px 0; font-weight:bold;">NIP</td>
+                  <td>:</td>
+                  <td>${escapeHtml(p.nip)}</td>
+                  <td style="padding:2px 0; font-weight:bold;">NIP Penilai</td>
+                  <td>:</td>
+                  <td>${escapeHtml(p.atasanNip)}</td>
+                </tr>
+                <tr>
+                  <td style="padding:2px 0; font-weight:bold;">Jabatan</td>
+                  <td>:</td>
+                  <td>${escapeHtml(p.jabatan)}</td>
+                  <td style="padding:2px 0; font-weight:bold;">Jabatan Penilai</td>
+                  <td>:</td>
+                  <td>${escapeHtml(p.atasanJabatan)}</td>
+                </tr>
+              </table>
+
+              <table style="width:100%; border-collapse:collapse; font-size:10pt;">
+                <thead>
+                  <tr style="background-color:#e2e8f0;">
+                    <th style="border:1px solid #000; padding:6px; width:5%; text-align:center;">No</th>
+                    <th style="border:1px solid #000; padding:6px; width:13%; text-align:center;">Tanggal</th>
+                    <th style="border:1px solid #000; padding:6px; width:16%; text-align:center;">Waktu (WITA)</th>
+                    <th style="border:1px solid #000; padding:6px; width:16%; text-align:left;">Fokus Tugas</th>
+                    <th style="border:1px solid #000; padding:6px; width:36%; text-align:left;">Uraian Kegiatan &amp; Keterkaitan SKP</th>
+                    <th style="border:1px solid #000; padding:6px; width:14%; text-align:center;">Output</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${tableRowsHtml}
+                </tbody>
+              </table>
+
+              <table style="width:100%; margin-top:28px; font-size:10.5pt; border:none;">
+                <tr>
+                  <td style="width:50%; text-align:center; vertical-align:top;">
+                    <div>Mengetahui,</div>
+                    <div>${escapeHtml(p.atasanJabatan)}</div>
+                    <br><br><br><br>
+                    <div style="font-weight:bold; text-decoration:underline;">${escapeHtml(p.atasanNama)}</div>
+                    <div>NIP. ${escapeHtml(p.atasanNip)}</div>
+                  </td>
+                  <td style="width:50%; text-align:center; vertical-align:top;">
+                    <div>${escapeHtml(p.tempatCetak || 'Rantau')}, ${escapeHtml(tglCetak)}</div>
+                    <div>Pegawai yang Melaporkan,</div>
+                    <br><br><br><br>
+                    <div style="font-weight:bold; text-decoration:underline;">${escapeHtml(p.nama)}</div>
+                    <div>NIP. ${escapeHtml(p.nip)}</div>
+                  </td>
+                </tr>
+              </table>
+            </div>
+          </body>
+          </html>
+        `;
+
+        const blob = new Blob(['\ufeff', wordHtml], { type: 'application/msword;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const safeNama = (p.nama || 'ASN_Tapin').replace(/[^a-zA-Z0-9]+/g, '_');
+        const safePeriode = (bulan || getTodayISO().slice(0, 7)).replace(/[^0-9-]+/g, '_');
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Laporan_Jurnal_ASN_${safeNama}_${safePeriode}.doc`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('File Microsoft Word (.doc) berhasil diunduh!');
+      } catch (err) {
+        console.error('downloadWord exception:', err);
+        showToast('Terjadi kendala saat membuat file Word.', 'error');
+      }
+    }
+
+    function exportCSV() {
+      try {
+        const headers = ['Tanggal', 'Jam Mulai', 'Jam Selesai', 'Jam Efektif', 'Kategori', 'Kontrak', 'Status Kontrak', 'Butir SKP', 'Uraian Kegiatan', 'Volume', 'Satuan', 'Bukti'];
+        const rows = appData.jurnal.map(i => {
+          const effJam = (calculateEffectiveMinutes(i.jamMulai, i.jamSelesai) / 60).toFixed(2);
+          return [
+            i.tanggal,
+            i.jamMulai,
+            i.jamSelesai,
+            effJam,
+            `"${(i.kategori || '').replace(/"/g, '""')}"`,
+            `"${(i.namaKontrak || '').replace(/"/g, '""')}"`,
+            `"${(i.statusKontrak || '').replace(/"/g, '""')}"`,
+            `"${(i.skp || '').replace(/"/g, '""')}"`,
+            `"${(i.uraian || '').replace(/"/g, '""')}"`,
+            i.volume,
+            `"${(i.satuan || '').replace(/"/g, '""')}"`,
+            `"${(i.bukti || '').replace(/"/g, '""')}"`
+          ];
+        });
+        const csv = '\ufeff' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Jurnal_ASN_${(appData.profil.nama || 'Tapin').replace(/\s+/g, '_')}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('File CSV (UTF-8 BOM) berhasil diunduh!');
+      } catch (err) {
+        console.error('exportCSV exception:', err);
+        showToast('Gagal mengekspor CSV.', 'error');
+      }
+    }
+  </script>
+</body>
+</html>
